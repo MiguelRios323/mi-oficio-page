@@ -12,12 +12,11 @@ function validarFirmaMercadoPago(
 ) {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
 
-  // Durante desarrollo podemos dejar la validación
-  // desactivada hasta configurar la clave en Mercado Pago.
   if (!secret) {
     console.warn(
       "MERCADOPAGO_WEBHOOK_SECRET no configurado. Firma no validada."
     );
+
     return true;
   }
 
@@ -25,6 +24,10 @@ function validarFirmaMercadoPago(
   const xRequestId = request.headers.get("x-request-id");
 
   if (!xSignature || !xRequestId) {
+    console.error(
+      "Faltan headers x-signature o x-request-id."
+    );
+
     return false;
   }
 
@@ -32,7 +35,7 @@ function validarFirmaMercadoPago(
   let v1 = "";
 
   for (const part of xSignature.split(",")) {
-    const [key, value] = part.split("=");
+    const [key, value] = part.split("=", 2);
 
     if (!key || !value) continue;
 
@@ -49,11 +52,18 @@ function validarFirmaMercadoPago(
   }
 
   if (!ts || !v1) {
+    console.error(
+      "No se pudieron obtener ts o v1 desde x-signature."
+    );
+
     return false;
   }
 
+  // Mercado Pago requiere este formato:
+  // id:<data.id>;request-id:<x-request-id>;ts:<ts>;
+
   const manifest =
-    `id:${dataId};` +
+    `id:${dataId.toLowerCase()};` +
     `request-id:${xRequestId};` +
     `ts:${ts};`;
 
@@ -62,9 +72,22 @@ function validarFirmaMercadoPago(
     .update(manifest)
     .digest("hex");
 
+  // Evitar que timingSafeEqual lance una excepción
+  // cuando las longitudes sean diferentes.
+  const generatedBuffer = Buffer.from(
+    generatedSignature,
+    "utf8"
+  );
+
+  const receivedBuffer = Buffer.from(v1, "utf8");
+
+  if (generatedBuffer.length !== receivedBuffer.length) {
+    return false;
+  }
+
   return crypto.timingSafeEqual(
-    Buffer.from(generatedSignature),
-    Buffer.from(v1)
+    generatedBuffer,
+    receivedBuffer
   );
 }
 
@@ -72,21 +95,29 @@ export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url);
 
-    const type =
-      url.searchParams.get("type") ||
-      url.searchParams.get("topic");
-
+    // Mercado Pago envía data.id como parámetro.
     const dataId =
       url.searchParams.get("data.id") ||
-      url.searchParams.get("id");
+      url.searchParams.get("id") ||
+      "";
 
-    console.log("Webhook Mercado Pago recibido:", {
-      type,
-      dataId,
-    });
+    const type =
+      url.searchParams.get("type") ||
+      url.searchParams.get("topic") ||
+      "";
+
+    console.log(
+      "Webhook Mercado Pago recibido:",
+      {
+        type,
+        dataId,
+      }
+    );
 
     if (!dataId) {
-      console.warn("Webhook sin data.id");
+      console.warn(
+        "Webhook Mercado Pago sin data.id."
+      );
 
       return NextResponse.json(
         { received: true },
@@ -94,10 +125,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * Verificamos que la notificación realmente
-     * provenga de Mercado Pago.
-     */
+    // ==========================================
+    // VALIDACIÓN DE FIRMA
+    // ==========================================
+
     const firmaValida = validarFirmaMercadoPago(
       request,
       dataId
@@ -109,15 +140,17 @@ export async function POST(request: NextRequest) {
       );
 
       return NextResponse.json(
-        { error: "Firma inválida" },
+        {
+          error: "Firma inválida",
+        },
         { status: 401 }
       );
     }
 
-    /*
-     * Leemos el body solamente después de validar
-     * la información básica de la notificación.
-     */
+    // ==========================================
+    // LEER BODY
+    // ==========================================
+
     let body: any = {};
 
     try {
@@ -126,11 +159,36 @@ export async function POST(request: NextRequest) {
       body = {};
     }
 
-    /*
-     * ==========================================
-     * SUSCRIPCIÓN
-     * ==========================================
-     */
+    console.log(
+      "Body webhook Mercado Pago:",
+      body
+    );
+
+    // ==========================================
+    // TOKEN MERCADO PAGO
+    // ==========================================
+
+    const accessToken =
+      process.env.MERCADOPAGO_ACCESS_TOKEN;
+
+    if (!accessToken) {
+      console.error(
+        "MERCADOPAGO_ACCESS_TOKEN no configurado."
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Mercado Pago no está configurado correctamente.",
+        },
+        { status: 500 }
+      );
+    }
+
+    // ==========================================
+    // SUSCRIPCIONES
+    // ==========================================
+
     if (
       type === "subscription_preapproval" ||
       type === "preapproval"
@@ -139,16 +197,36 @@ export async function POST(request: NextRequest) {
         `https://api.mercadopago.com/preapproval/${dataId}`,
         {
           method: "GET",
+
           headers: {
-            Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
+
           cache: "no-store",
         }
       );
 
-      const subscription =
-        await subscriptionResponse.json();
+      const responseText =
+        await subscriptionResponse.text();
+
+      let subscription: any = {};
+
+      try {
+        subscription = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        console.error(
+          "Mercado Pago devolvió una respuesta no JSON al consultar la suscripción:",
+          responseText
+        );
+
+        return NextResponse.json(
+          { received: true },
+          { status: 200 }
+        );
+      }
 
       if (!subscriptionResponse.ok) {
         console.error(
@@ -197,10 +275,10 @@ export async function POST(request: NextRequest) {
           ""
         );
 
-      /*
-       * Solo activamos Premium cuando Mercado Pago
-       * informa que la suscripción está autorizada.
-       */
+      // ==========================================
+      // PREMIUM
+      // ==========================================
+
       const premiumActivo =
         subscription.status === "authorized";
 
@@ -211,7 +289,11 @@ export async function POST(request: NextRequest) {
       await perfilRef.set(premiumActivo);
 
       console.log(
-        `Premium ${premiumActivo ? "ACTIVADO" : "DESACTIVADO"} para ${emailKey}`
+        `Premium ${
+          premiumActivo
+            ? "ACTIVADO"
+            : "DESACTIVADO"
+        } para ${emailKey}`
       );
 
       return NextResponse.json(
@@ -225,30 +307,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * ==========================================
-     * PAGOS
-     * ==========================================
-     *
-     * Mercado Pago recomienda recibir también
-     * las notificaciones de pagos asociadas
-     * a las suscripciones.
-     */
+    // ==========================================
+    // PAGOS
+    // ==========================================
+
     if (type === "payment") {
       const paymentResponse = await fetch(
         `https://api.mercadopago.com/v1/payments/${dataId}`,
         {
           method: "GET",
+
           headers: {
-            Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
+
           cache: "no-store",
         }
       );
 
-      const payment =
-        await paymentResponse.json();
+      const responseText =
+        await paymentResponse.text();
+
+      let payment: any = {};
+
+      try {
+        payment = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        console.error(
+          "Mercado Pago devolvió una respuesta no JSON al consultar el pago:",
+          responseText
+        );
+
+        return NextResponse.json(
+          { received: true },
+          { status: 200 }
+        );
+      }
 
       if (!paymentResponse.ok) {
         console.error(
@@ -274,14 +371,6 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      /*
-       * No activamos Premium solamente por recibir
-       * una notificación de pago.
-       *
-       * La activación principal se hace mediante
-       * la consulta de la suscripción autorizada.
-       */
-
       return NextResponse.json(
         {
           received: true,
@@ -292,11 +381,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * ==========================================
-     * OTROS EVENTOS
-     * ==========================================
-     */
+    // ==========================================
+    // OTROS EVENTOS
+    // ==========================================
 
     console.log(
       "Evento Mercado Pago no procesado:",
@@ -317,14 +404,12 @@ export async function POST(request: NextRequest) {
       error
     );
 
-    /*
-     * Devolvemos 200 para evitar que Mercado Pago
-     * quede reintentando indefinidamente mientras
-     * depuramos un error interno.
-     */
     return NextResponse.json(
-      { received: true },
-      { status: 200 }
+      {
+        error:
+          "Error interno procesando webhook de Mercado Pago.",
+      },
+      { status: 500 }
     );
   }
 }
