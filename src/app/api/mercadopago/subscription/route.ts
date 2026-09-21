@@ -1,148 +1,250 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+/**
+ * Esta API utiliza Firebase Admin para verificar al usuario
+ * y Mercado Pago para crear la suscripción Premium.
+ *
+ * TEST:
+ *   MERCADOPAGO_TEST_MODE=true
+ *   MERCADOPAGO_TEST_PAYER_EMAIL=testuser3694982411@testuser.com
+ *
+ * PRODUCCIÓN:
+ *   MERCADOPAGO_TEST_MODE=false
+ *
+ * Importante:
+ * El Access Token de TEST debe pertenecer al vendedor TEST.
+ * El payer_email de TEST debe pertenecer al comprador TEST.
+ */
 
-function safeEmailKey(email: string) {
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function safeEmailKey(email: string): string {
   return email
     .toLowerCase()
-    .replace(/[.#$[\]\\]/g, "_");
+    .replace(/[.#$[\]]/g, "_");
 }
 
+function jsonError(
+  message: string,
+  status = 500,
+  extra: Record<string, unknown> = {}
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      ...extra,
+    },
+    { status }
+  );
+}
+
+/**
+ * GET
+ *
+ * Sirve para comprobar que la API está publicada.
+ *
+ * URL:
+ * /api/mercadopago/subscription
+ */
+export async function GET() {
+  const testMode =
+    process.env.MERCADOPAGO_TEST_MODE === "true";
+
+  const hasAccessToken =
+    Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
+
+  const hasFirebaseProject =
+    Boolean(process.env.FIREBASE_PROJECT_ID);
+
+  return NextResponse.json({
+    ok: true,
+    route: "mercadopago-subscription",
+    message: "MiOficio API funcionando correctamente",
+    testMode,
+    configured: {
+      mercadoPago: hasAccessToken,
+      firebase: hasFirebaseProject,
+    },
+  });
+}
+
+/**
+ * POST
+ *
+ * Crea la suscripción Premium.
+ */
 export async function POST(request: NextRequest) {
   try {
-    console.log("========================================");
-    console.log("MiOficio - Mercado Pago Subscription API");
-    console.log("========================================");
+    console.log(
+      "=========================================="
+    );
 
-    // =========================================================
-    // 1. AUTENTICACIÓN FIREBASE
-    // =========================================================
+    console.log(
+      "MiOficio → Mercado Pago → POST /subscription"
+    );
 
-    const authorization = request.headers.get("authorization");
+    console.log(
+      "=========================================="
+    );
 
-    if (!authorization?.startsWith("Bearer ")) {
-      console.error("No se recibió Authorization Bearer");
+    /**
+     * 1. Firebase Authorization
+     */
+    const authorization =
+      request.headers.get("authorization");
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: "No autorizado",
-        },
-        { status: 401 }
+    if (!authorization) {
+      console.error(
+        "Falta header Authorization."
+      );
+
+      return jsonError(
+        "No autorizado. Falta el token de Firebase.",
+        401
       );
     }
 
-    const firebaseToken = authorization.substring(7);
+    if (!authorization.startsWith("Bearer ")) {
+      console.error(
+        "Authorization no comienza con Bearer."
+      );
 
+      return jsonError(
+        "No autorizado. Token inválido.",
+        401
+      );
+    }
+
+    const firebaseToken =
+      authorization.substring(7).trim();
+
+    if (!firebaseToken) {
+      return jsonError(
+        "No autorizado. Token vacío.",
+        401
+      );
+    }
+
+    /**
+     * 2. Verificar usuario Firebase
+     */
     let decodedToken;
 
     try {
-      decodedToken = await adminAuth.verifyIdToken(firebaseToken);
-    } catch (error) {
-      console.error("Token Firebase inválido:", error);
+      decodedToken =
+        await adminAuth.verifyIdToken(
+          firebaseToken
+        );
+    } catch (firebaseError) {
+      console.error(
+        "Error verificando Firebase:",
+        firebaseError
+      );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error: "La sesión de Firebase no es válida.",
-        },
-        { status: 401 }
+      return jsonError(
+        "La sesión de Firebase no es válida o expiró.",
+        401
       );
     }
 
-    const firebaseEmail = decodedToken.email;
+    const realUserEmail =
+      decodedToken.email;
 
-    if (!firebaseEmail) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "El usuario de Firebase no tiene email.",
-        },
-        { status: 400 }
+    if (!realUserEmail) {
+      return jsonError(
+        "El usuario de Firebase no tiene email asociado.",
+        400
       );
     }
 
-    // =========================================================
-    // 2. CONFIGURACIÓN MERCADO PAGO
-    // =========================================================
+    const emailKey =
+      safeEmailKey(realUserEmail);
 
+    /**
+     * 3. Referencia interna de MiOficio
+     *
+     * Esta referencia sigue identificando
+     * al usuario real de MiOficio.
+     */
+    const externalReference =
+      `mioficio_${emailKey}`;
+
+    /**
+     * 4. Variables de entorno
+     */
     const accessToken =
       process.env.MERCADOPAGO_ACCESS_TOKEN;
 
     if (!accessToken) {
       console.error(
-        "MERCADOPAGO_ACCESS_TOKEN no está configurado."
+        "MERCADOPAGO_ACCESS_TOKEN no configurado."
       );
 
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Mercado Pago no está configurado correctamente en el servidor.",
-        },
-        { status: 500 }
+      return jsonError(
+        "Mercado Pago no está configurado correctamente en el servidor.",
+        500
       );
     }
-
-    // =========================================================
-    // 3. MODO TEST
-    // =========================================================
-
-    const testMode =
-      process.env.MERCADOPAGO_TEST_MODE === "true";
-
-    /*
-     * Mercado Pago TEST necesita un comprador de prueba.
-     *
-     * No usamos directamente el email de Firebase cuando
-     * estamos en modo TEST, porque ese email puede ser un
-     * usuario real.
-     *
-     * Mercado Pago documenta test@testuser.com como email
-     * de comprador de prueba.
-     */
-
-    const payerEmail = testMode
-      ? process.env.MERCADOPAGO_TEST_PAYER_EMAIL ||
-        "test@testuser.com"
-      : firebaseEmail;
-
-    console.log("Configuración Mercado Pago:", {
-      testMode,
-      firebaseEmail,
-      payerEmail,
-      tokenConfigured: Boolean(accessToken),
-    });
-
-    // =========================================================
-    // 4. REFERENCIA DEL USUARIO MIOFICIO
-    // =========================================================
-
-    const emailKey = safeEmailKey(firebaseEmail);
-
-    const externalReference =
-      `mioficio_${emailKey}`;
-
-    // =========================================================
-    // 5. URL DE RETORNO
-    // =========================================================
 
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       "https://mioficio-sepia.vercel.app";
 
-    // =========================================================
-    // 6. DATOS DE LA SUSCRIPCIÓN
-    // =========================================================
+    /**
+     * 5. Determinar TEST / PRODUCCIÓN
+     */
+    const testMode =
+      process.env.MERCADOPAGO_TEST_MODE ===
+      "true";
 
+    /**
+     * En TEST NO usamos el email real
+     * del usuario de Firebase.
+     *
+     * Mercado Pago exige que payer y collector
+     * sean usuarios de prueba cuando se prueba
+     * la integración.
+     */
+    let payerEmail = realUserEmail;
+
+    if (testMode) {
+      payerEmail =
+        process.env.MERCADOPAGO_TEST_PAYER_EMAIL ||
+        "testuser3694982411@testuser.com";
+
+      console.log(
+        "MODO TEST Mercado Pago activado."
+      );
+
+      console.log(
+        "Comprador TEST:",
+        payerEmail
+      );
+    } else {
+      console.log(
+        "MODO PRODUCCIÓN Mercado Pago activado."
+      );
+
+      console.log(
+        "Comprador real:",
+        realUserEmail
+      );
+    }
+
+    /**
+     * 6. Datos de la suscripción
+     */
     const subscriptionData = {
       reason: "MiOficio Premium",
 
-      external_reference: externalReference,
+      external_reference:
+        externalReference,
 
-      payer_email: payerEmail,
+      payer_email:
+        payerEmail,
 
       auto_recurring: {
         frequency: 1,
@@ -157,258 +259,235 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(
-      "Datos enviados a Mercado Pago:",
-      {
-        reason: subscriptionData.reason,
-        external_reference:
-          subscriptionData.external_reference,
-        payer_email:
-          subscriptionData.payer_email,
-        amount:
-          subscriptionData.auto_recurring
-            .transaction_amount,
-        currency:
-          subscriptionData.auto_recurring.currency_id,
-        back_url:
-          subscriptionData.back_url,
-        testMode,
-      }
+      "Datos enviados a Mercado Pago:"
     );
 
-    // =========================================================
-    // 7. CREAR SUSCRIPCIÓN
-    // =========================================================
+    console.log({
+      testMode,
+      payer_email: payerEmail,
+      external_reference:
+        externalReference,
+      back_url: appUrl,
+      amount: 4999,
+    });
 
-    const mpResponse = await fetch(
-      "https://api.mercadopago.com/preapproval",
-      {
-        method: "POST",
+    /**
+     * 7. Crear Preapproval
+     */
+    let response: Response;
 
-        headers: {
-          Authorization:
-            `Bearer ${accessToken}`,
-          "Content-Type":
-            "application/json",
-          Accept:
-            "application/json",
-        },
+    try {
+      response = await fetch(
+        "https://api.mercadopago.com/preapproval",
+        {
+          method: "POST",
 
-        body: JSON.stringify(
-          subscriptionData
-        ),
+          headers: {
+            Authorization:
+              `Bearer ${accessToken}`,
 
-        cache: "no-store",
-      }
-    );
+            "Content-Type":
+              "application/json",
 
-    // =========================================================
-    // 8. LEER RESPUESTA UNA SOLA VEZ
-    // =========================================================
+            Accept:
+              "application/json",
+          },
 
+          body: JSON.stringify(
+            subscriptionData
+          ),
+
+          cache: "no-store",
+        }
+      );
+    } catch (mercadoPagoConnectionError) {
+      console.error(
+        "Error conectando con Mercado Pago:",
+        mercadoPagoConnectionError
+      );
+
+      return jsonError(
+        "No se pudo conectar con Mercado Pago.",
+        502
+      );
+    }
+
+    /**
+     * 8. LEER RESPUESTA COMO TEXTO
+     *
+     * No usamos response.json() directamente.
+     *
+     * Esto evita:
+     * Unexpected end of JSON input
+     */
     const responseText =
-      await mpResponse.text();
+      await response.text();
 
     console.log(
       "Mercado Pago HTTP status:",
-      mpResponse.status
+      response.status
     );
 
     console.log(
       "Mercado Pago response:",
-      responseText.substring(0, 2000)
+      responseText.substring(0, 3000)
     );
 
-    let mpData: any = {};
+    /**
+     * 9. Parsear JSON de forma segura
+     */
+    let data: any = {};
 
     if (responseText.trim()) {
       try {
-        mpData =
-          JSON.parse(responseText);
-      } catch (error) {
+        data = JSON.parse(
+          responseText
+        );
+      } catch (parseError) {
         console.error(
           "Mercado Pago devolvió contenido no JSON:",
-          error
+          parseError
         );
 
-        return NextResponse.json(
+        return jsonError(
+          "Mercado Pago devolvió una respuesta inesperada.",
+          502,
           {
-            success: false,
-            error:
-              "Mercado Pago devolvió una respuesta inesperada.",
-            status:
-              mpResponse.status,
-            response:
+            mercadoPagoStatus:
+              response.status,
+
+            responsePreview:
               responseText.substring(
                 0,
                 1000
               ),
-          },
-          { status: 502 }
+          }
         );
       }
     }
 
-    // =========================================================
-    // 9. MERCADO PAGO DEVOLVIÓ ERROR
-    // =========================================================
-
-    if (!mpResponse.ok) {
+    /**
+     * 10. Mercado Pago rechazó la solicitud
+     */
+    if (!response.ok) {
       console.error(
-        "========================================"
-      );
-
-      console.error(
-        "ERROR MERCADO PAGO"
+        "Mercado Pago rechazó la suscripción."
       );
 
       console.error(
         JSON.stringify(
-          mpData,
+          data,
           null,
           2
         )
       );
 
-      console.error(
-        "HTTP:",
-        mpResponse.status
-      );
-
-      console.error(
-        "========================================"
-      );
-
-      return NextResponse.json(
+      return jsonError(
+        data?.message ||
+          data?.error ||
+          "Mercado Pago rechazó la creación de la suscripción.",
+        response.status >= 400 &&
+        response.status < 600
+          ? response.status
+          : 502,
         {
-          success: false,
+          mercadoPagoStatus:
+            response.status,
 
-          error:
-            mpData?.message ||
-            mpData?.error ||
-            "Mercado Pago rechazó la creación de la suscripción.",
+          details: data,
 
-          details: mpData,
-
-          status:
-            mpResponse.status,
-        },
-        {
-          status:
-            mpResponse.status >= 400 &&
-            mpResponse.status < 600
-              ? mpResponse.status
-              : 502,
+          testMode,
         }
       );
     }
 
-    // =========================================================
-    // 10. VALIDAR RESPUESTA
-    // =========================================================
-
-    const subscriptionId =
-      mpData?.id;
-
+    /**
+     * 11. Obtener checkout
+     *
+     * Mercado Pago puede devolver
+     * init_point o sandbox_init_point
+     * dependiendo del entorno.
+     */
     const checkoutUrl =
-      mpData?.init_point;
-
-    if (!subscriptionId) {
-      console.error(
-        "Mercado Pago no devolvió ID:",
-        mpData
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-
-          error:
-            "Mercado Pago no devolvió el ID de la suscripción.",
-
-          details: mpData,
-        },
-        { status: 502 }
-      );
-    }
+      data?.init_point ||
+      data?.sandbox_init_point;
 
     if (!checkoutUrl) {
       console.error(
-        "Mercado Pago no devolvió init_point:",
-        mpData
+        "Mercado Pago no devolvió init_point."
       );
 
-      return NextResponse.json(
+      console.error(
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      );
+
+      return jsonError(
+        "Mercado Pago creó la suscripción pero no devolvió el enlace de pago.",
+        502,
         {
-          success: false,
-
-          error:
-            "Mercado Pago creó la suscripción pero no devolvió el enlace de pago.",
-
-          details: mpData,
-        },
-        { status: 502 }
+          details: data,
+          testMode,
+        }
       );
     }
 
-    // =========================================================
-    // 11. RESPUESTA AL FRONTEND
-    // =========================================================
-
+    /**
+     * 12. Respuesta al frontend
+     */
     console.log(
-      "Suscripción creada correctamente:",
-      {
-        subscriptionId,
-        checkoutUrl,
-        externalReference,
-        payerEmail,
-        testMode,
-      }
+      "Suscripción creada correctamente."
     );
+
+    console.log({
+      subscriptionId: data.id,
+      checkoutUrl,
+      externalReference,
+      testMode,
+    });
 
     return NextResponse.json(
       {
         success: true,
 
-        testMode,
-
-        subscriptionId,
+        subscriptionId:
+          data.id,
 
         checkoutUrl,
 
         externalReference,
 
-        payerEmail,
+        testMode,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error(
-      "========================================"
+      "=========================================="
     );
 
     console.error(
-      "ERROR INTERNO MIOFICIO"
+      "ERROR GENERAL MiOficio / Mercado Pago"
     );
 
     console.error(error);
 
     console.error(
-      "========================================"
+      "=========================================="
     );
 
-    return NextResponse.json(
+    return jsonError(
+      "No se pudo crear la suscripción Premium.",
+      500,
       {
-        success: false,
-
-        error:
-          "No se pudo crear la suscripción Premium.",
-
         details:
           error instanceof Error
             ? error.message
-            : String(error),
-      },
-      { status: 500 }
+            : "Error desconocido.",
+      }
     );
   }
 }
