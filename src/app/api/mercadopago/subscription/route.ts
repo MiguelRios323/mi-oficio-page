@@ -141,9 +141,11 @@ export async function POST(request: Request) {
     const subscriptionBody = {
       reason: "MiOficio Premium",
 
-      external_reference: externalReference,
+      external_reference:
+        externalReference,
 
-      payer_email: payerEmail,
+      payer_email:
+        payerEmail,
 
       auto_recurring: {
         frequency: 1,
@@ -166,8 +168,10 @@ export async function POST(request: Request) {
           headers: {
             Authorization:
               "Bearer " + accessToken,
+
             "Content-Type":
               "application/json",
+
             Accept:
               "application/json",
           },
@@ -201,10 +205,13 @@ export async function POST(request: Request) {
       return Response.json(
         {
           ok: false,
+
           error:
             "Mercado Pago rechazó la creación de la suscripción.",
+
           status:
             mercadoPagoResponse.status,
+
           detail:
             mercadoPagoData?.message ||
             mercadoPagoData?.error ||
@@ -229,9 +236,12 @@ export async function POST(request: Request) {
       return Response.json(
         {
           ok: false,
+
           error:
             "Mercado Pago no devolvió una URL de pago.",
-          detail: mercadoPagoData,
+
+          detail:
+            mercadoPagoData,
         },
         { status: 502 }
       );
@@ -269,9 +279,12 @@ export async function POST(request: Request) {
     return Response.json(
       {
         ok: false,
+
         error:
           "No se pudo crear la suscripción Premium.",
-        detail: message,
+
+        detail:
+          message,
       },
       { status: 500 }
     );

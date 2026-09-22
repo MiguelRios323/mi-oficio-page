@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function safeEmailKey(email: string) {
-  return email.toLowerCase().replace(/[.#$[\]]/g, "_");
+  return email
+    .toLowerCase()
+    .replace(/[.#$[\]/]/g, "_");
 }
 
 function validarFirmaMercadoPago(
   request: NextRequest,
   dataId: string
 ) {
-  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  const secret =
+    process.env.MERCADOPAGO_WEBHOOK_SECRET;
 
   if (!secret) {
     console.warn(
@@ -20,8 +26,11 @@ function validarFirmaMercadoPago(
     return true;
   }
 
-  const xSignature = request.headers.get("x-signature");
-  const xRequestId = request.headers.get("x-request-id");
+  const xSignature =
+    request.headers.get("x-signature");
+
+  const xRequestId =
+    request.headers.get("x-request-id");
 
   if (!xSignature || !xRequestId) {
     console.error(
@@ -37,7 +46,9 @@ function validarFirmaMercadoPago(
   for (const part of xSignature.split(",")) {
     const [key, value] = part.split("=", 2);
 
-    if (!key || !value) continue;
+    if (!key || !value) {
+      continue;
+    }
 
     const trimmedKey = key.trim();
     const trimmedValue = value.trim();
@@ -59,29 +70,30 @@ function validarFirmaMercadoPago(
     return false;
   }
 
-  // Mercado Pago requiere este formato:
-  // id:<data.id>;request-id:<x-request-id>;ts:<ts>;
-
   const manifest =
     `id:${dataId.toLowerCase()};` +
     `request-id:${xRequestId};` +
     `ts:${ts};`;
 
-  const generatedSignature = crypto
-    .createHmac("sha256", secret)
-    .update(manifest)
-    .digest("hex");
+  const generatedSignature =
+    crypto
+      .createHmac("sha256", secret)
+      .update(manifest)
+      .digest("hex");
 
-  // Evitar que timingSafeEqual lance una excepción
-  // cuando las longitudes sean diferentes.
-  const generatedBuffer = Buffer.from(
-    generatedSignature,
-    "utf8"
-  );
+  const generatedBuffer =
+    Buffer.from(
+      generatedSignature,
+      "utf8"
+    );
 
-  const receivedBuffer = Buffer.from(v1, "utf8");
+  const receivedBuffer =
+    Buffer.from(v1, "utf8");
 
-  if (generatedBuffer.length !== receivedBuffer.length) {
+  if (
+    generatedBuffer.length !==
+    receivedBuffer.length
+  ) {
     return false;
   }
 
@@ -91,11 +103,12 @@ function validarFirmaMercadoPago(
   );
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+) {
   try {
     const url = new URL(request.url);
 
-    // Mercado Pago envía data.id como parámetro.
     const dataId =
       url.searchParams.get("data.id") ||
       url.searchParams.get("id") ||
@@ -120,8 +133,12 @@ export async function POST(request: NextRequest) {
       );
 
       return NextResponse.json(
-        { received: true },
-        { status: 200 }
+        {
+          received: true,
+        },
+        {
+          status: 200,
+        }
       );
     }
 
@@ -129,10 +146,11 @@ export async function POST(request: NextRequest) {
     // VALIDACIÓN DE FIRMA
     // ==========================================
 
-    const firmaValida = validarFirmaMercadoPago(
-      request,
-      dataId
-    );
+    const firmaValida =
+      validarFirmaMercadoPago(
+        request,
+        dataId
+      );
 
     if (!firmaValida) {
       console.error(
@@ -143,7 +161,9 @@ export async function POST(request: NextRequest) {
         {
           error: "Firma inválida",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
@@ -169,7 +189,7 @@ export async function POST(request: NextRequest) {
     // ==========================================
 
     const accessToken =
-      process.env.MERCADOPAGO_ACCESS_TOKEN;
+      process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
 
     if (!accessToken) {
       console.error(
@@ -181,7 +201,9 @@ export async function POST(request: NextRequest) {
           error:
             "Mercado Pago no está configurado correctamente.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
@@ -193,19 +215,23 @@ export async function POST(request: NextRequest) {
       type === "subscription_preapproval" ||
       type === "preapproval"
     ) {
-      const subscriptionResponse = await fetch(
-        `https://api.mercadopago.com/preapproval/${dataId}`,
-        {
-          method: "GET",
+      const subscriptionResponse =
+        await fetch(
+          `https://api.mercadopago.com/preapproval/${dataId}`,
+          {
+            method: "GET",
 
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
+            headers: {
+              Authorization:
+                `Bearer ${accessToken}`,
 
-          cache: "no-store",
-        }
-      );
+              "Content-Type":
+                "application/json",
+            },
+
+            cache: "no-store",
+          }
+        );
 
       const responseText =
         await subscriptionResponse.text();
@@ -213,9 +239,10 @@ export async function POST(request: NextRequest) {
       let subscription: any = {};
 
       try {
-        subscription = responseText
-          ? JSON.parse(responseText)
-          : {};
+        subscription =
+          responseText
+            ? JSON.parse(responseText)
+            : {};
       } catch {
         console.error(
           "Mercado Pago devolvió una respuesta no JSON al consultar la suscripción:",
@@ -223,8 +250,12 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-          { received: true },
-          { status: 200 }
+          {
+            received: true,
+          },
+          {
+            status: 200,
+          }
         );
       }
 
@@ -235,8 +266,12 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-          { received: true },
-          { status: 200 }
+          {
+            received: true,
+          },
+          {
+            status: 200,
+          }
         );
       }
 
@@ -244,8 +279,13 @@ export async function POST(request: NextRequest) {
         "Suscripción consultada:",
         {
           id: subscription.id,
-          status: subscription.status,
-          payer_email: subscription.payer_email,
+
+          status:
+            subscription.status,
+
+          payer_email:
+            subscription.payer_email,
+
           external_reference:
             subscription.external_reference,
         }
@@ -255,8 +295,11 @@ export async function POST(request: NextRequest) {
         subscription.external_reference;
 
       if (
-        typeof externalReference !== "string" ||
-        !externalReference.startsWith("mioficio_")
+        typeof externalReference !==
+          "string" ||
+        !externalReference.startsWith(
+          "mioficio_"
+        )
       ) {
         console.warn(
           "La suscripción no pertenece a MiOficio:",
@@ -264,8 +307,12 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-          { received: true },
-          { status: 200 }
+          {
+            received: true,
+          },
+          {
+            status: 200,
+          }
         );
       }
 
@@ -280,13 +327,19 @@ export async function POST(request: NextRequest) {
       // ==========================================
 
       const premiumActivo =
-        subscription.status === "authorized";
+        subscription.status ===
+        "authorized";
 
-      const perfilRef = adminDb.ref(
-        `usuarios_data/${emailKey}/perfil/es_premium`
+      const perfilRef =
+        getAdminDb().ref(
+          `usuarios_data/${safeEmailKey(
+            emailKey
+          )}/perfil/es_premium`
+        );
+
+      await perfilRef.set(
+        premiumActivo
       );
-
-      await perfilRef.set(premiumActivo);
 
       console.log(
         `Premium ${
@@ -299,11 +352,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           received: true,
-          premium: premiumActivo,
-          subscriptionId: subscription.id,
-          status: subscription.status,
+
+          premium:
+            premiumActivo,
+
+          subscriptionId:
+            subscription.id,
+
+          status:
+            subscription.status,
         },
-        { status: 200 }
+        {
+          status: 200,
+        }
       );
     }
 
@@ -312,19 +373,23 @@ export async function POST(request: NextRequest) {
     // ==========================================
 
     if (type === "payment") {
-      const paymentResponse = await fetch(
-        `https://api.mercadopago.com/v1/payments/${dataId}`,
-        {
-          method: "GET",
+      const paymentResponse =
+        await fetch(
+          `https://api.mercadopago.com/v1/payments/${dataId}`,
+          {
+            method: "GET",
 
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
+            headers: {
+              Authorization:
+                `Bearer ${accessToken}`,
 
-          cache: "no-store",
-        }
-      );
+              "Content-Type":
+                "application/json",
+            },
+
+            cache: "no-store",
+          }
+        );
 
       const responseText =
         await paymentResponse.text();
@@ -332,9 +397,10 @@ export async function POST(request: NextRequest) {
       let payment: any = {};
 
       try {
-        payment = responseText
-          ? JSON.parse(responseText)
-          : {};
+        payment =
+          responseText
+            ? JSON.parse(responseText)
+            : {};
       } catch {
         console.error(
           "Mercado Pago devolvió una respuesta no JSON al consultar el pago:",
@@ -342,8 +408,12 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-          { received: true },
-          { status: 200 }
+          {
+            received: true,
+          },
+          {
+            status: 200,
+          }
         );
       }
 
@@ -354,8 +424,12 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-          { received: true },
-          { status: 200 }
+          {
+            received: true,
+          },
+          {
+            status: 200,
+          }
         );
       }
 
@@ -363,9 +437,13 @@ export async function POST(request: NextRequest) {
         "Pago Mercado Pago:",
         {
           id: payment.id,
-          status: payment.status,
+
+          status:
+            payment.status,
+
           status_detail:
             payment.status_detail,
+
           external_reference:
             payment.external_reference,
         }
@@ -374,10 +452,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           received: true,
-          paymentId: payment.id,
-          status: payment.status,
+
+          paymentId:
+            payment.id,
+
+          status:
+            payment.status,
         },
-        { status: 200 }
+        {
+          status: 200,
+        }
       );
     }
 
@@ -395,10 +479,14 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json(
-      { received: true },
-      { status: 200 }
+      {
+        received: true,
+      },
+      {
+        status: 200,
+      }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(
       "Error procesando webhook de Mercado Pago:",
       error
@@ -409,7 +497,9 @@ export async function POST(request: NextRequest) {
         error:
           "Error interno procesando webhook de Mercado Pago.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

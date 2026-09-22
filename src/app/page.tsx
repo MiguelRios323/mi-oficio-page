@@ -793,10 +793,11 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   };
 
   const activarPremium = async () => {
-    // Premium se valida en el backend/Mercado Pago.
-    // No bloquear el checkout por un valor antiguo guardado en Firebase.
     if (!auth.currentUser) {
-      mostrarNotificacion('Iniciá sesión nuevamente para continuar.', 'error');
+      mostrarNotificacion(
+        'Iniciá sesión nuevamente para continuar.',
+        'error'
+      );
       return;
     }
 
@@ -805,30 +806,78 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     try {
       const firebaseToken = await auth.currentUser.getIdToken();
 
-      const response = await fetch('/api/mercadopago/subscription', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${firebaseToken}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        '/api/mercadopago/subscription',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${firebaseToken}`,
+            'Content-Type': 'application/json',
+          },
         }
-      });
+      );
 
-      const data = await response.json();
+      const responseText = await response.text();
+
+      let data: any = {};
+
+      try {
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch (parseError) {
+        console.error(
+          'Respuesta no JSON del servidor:',
+          responseText
+        );
+
+        throw new Error(
+          `El servidor devolvió una respuesta inesperada (${response.status}).`
+        );
+      }
+
+      console.log(
+        'Respuesta API Mercado Pago:',
+        {
+          status: response.status,
+          ok: response.ok,
+          data,
+        }
+      );
 
       if (!response.ok || !data.checkoutUrl) {
-        console.error('Error al crear suscripción Premium:', data);
-        throw new Error(data?.error || 'No se pudo iniciar la suscripción.');
+        console.error(
+          'Error al crear suscripción Premium:',
+          data
+        );
+
+        const detalle =
+          data?.details?.message ||
+          data?.details?.error ||
+          data?.details?.cause?.[0]?.description ||
+          data?.message ||
+          data?.step ||
+          data?.error ||
+          `No se pudo iniciar la suscripción (${response.status}).`;
+
+        throw new Error(detalle);
       }
 
       window.location.href = data.checkoutUrl;
+
     } catch (error) {
-      console.error('Error activando Premium:', error);
+      console.error(
+        'Error activando Premium:',
+        error
+      );
+
       mostrarNotificacion(
         error instanceof Error
           ? error.message
           : 'No se pudo iniciar la suscripción Premium.',
         'error'
       );
+
       setCargandoPremium(false);
     }
   };
