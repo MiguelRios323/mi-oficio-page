@@ -31,11 +31,13 @@ function getFirebaseAdminApp(): App {
 
   const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
+
   const privateKey = process.env.FIREBASE_PRIVATE_KEY
     ?.replace(/\\n/g, "\n")
     .trim();
 
-  const databaseURL = process.env.FIREBASE_DATABASE_URL?.trim();
+  const databaseURL =
+    process.env.FIREBASE_DATABASE_URL?.trim();
 
   if (!projectId) {
     throw new Error("Falta FIREBASE_PROJECT_ID.");
