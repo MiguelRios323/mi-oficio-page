@@ -17,16 +17,12 @@ function safeEmailKey(email: string): string {
 }
 
 /**
- * Obtiene la firma enviada por dLocal.
+ * Extrae la firma enviada por dLocal.
  *
- * dLocal utiliza:
+ * Formato esperado:
  *
  * Authorization:
- * V2-HMAC-SHA256, Signature: <hash>
- *
- * También dejamos soporte para un header
- * "signature" por si el entorno de notificaciones
- * lo entrega de esa manera.
+ * V2-HMAC-SHA256, Signature: <64 caracteres hex>
  */
 function getSignature(request: Request): string {
   const authorization =
@@ -48,11 +44,16 @@ function getSignature(request: Request): string {
     }
   }
 
+  /**
+   * Compatibilidad adicional por si dLocal
+   * enviara la firma en un header separado.
+   */
   const signatureHeader =
     request.headers.get("signature");
 
   if (signatureHeader) {
-    const value = signatureHeader.trim();
+    const value =
+      signatureHeader.trim();
 
     const match = value.match(
       /Signature\s*:\s*([a-fA-F0-9]{64})/i
@@ -71,7 +72,7 @@ function getSignature(request: Request): string {
 }
 
 /**
- * Compara dos firmas de forma segura.
+ * Comparación segura de firmas.
  */
 function verifySignature(
   received: string,
@@ -99,7 +100,7 @@ function verifySignature(
 /**
  * POST
  *
- * Este es el endpoint que recibe la notificación
+ * Endpoint que recibe las notificaciones
  * de dLocal.
  */
 export async function POST(request: Request) {
@@ -107,17 +108,16 @@ export async function POST(request: Request) {
     /**
      * IMPORTANTE:
      *
-     * No usamos request.json().
-     *
-     * Necesitamos conservar exactamente el body
-     * recibido porque el body forma parte de la
-     * firma HMAC.
+     * El body debe leerse como texto sin modificarlo.
+     * El body forma parte de la firma HMAC.
      */
     const rawBody =
       await request.text();
 
     /**
-     * Variables de entorno.
+     * ==================================================
+     * VARIABLES DE ENTORNO
+     * ==================================================
      */
     const xLogin =
       process.env.DLOCAL_X_LOGIN?.trim();
@@ -126,7 +126,9 @@ export async function POST(request: Request) {
       process.env.DLOCAL_SECRET_KEY?.trim();
 
     /**
-     * Headers enviados por dLocal.
+     * ==================================================
+     * HEADERS DE DLOCAL
+     * ==================================================
      */
     const xDate =
       request.headers
@@ -143,6 +145,12 @@ export async function POST(request: Request) {
         .get("signature")
         ?.trim() || "";
 
+    /**
+     * IMPORTANTE:
+     *
+     * dLocal realmente está enviando X-Login
+     * en el POST real.
+     */
     const xLoginHeader =
       request.headers
         .get("x-login")
@@ -155,21 +163,42 @@ export async function POST(request: Request) {
 
     /**
      * ==================================================
+     * X-LOGIN UTILIZADO PARA LA FIRMA
+     * ==================================================
+     *
+     * Para la firma utilizamos el X-Login enviado
+     * por dLocal cuando está disponible.
+     *
+     * Si por algún motivo no viene, usamos la
+     * variable de entorno.
+     */
+    const signingXLogin =
+      xLoginHeader ||
+      xLogin ||
+      "";
+
+    /**
+     * ==================================================
+     * FIRMA RECIBIDA
+     * ==================================================
+     */
+    const receivedSignature =
+      getSignature(request);
+
+    /**
+     * ==================================================
      * DIAGNÓSTICO SEGURO
      * ==================================================
      *
      * NO mostramos:
      *
-     * - DLOCAL_X_LOGIN completo
      * - DLOCAL_SECRET_KEY
+     * - DLOCAL_X_LOGIN completo
+     * - X-Login completo
      * - Authorization completo
      * - Signature completa
-     * - Body completo
-     *
-     * Solo mostramos información útil para
-     * descubrir qué está enviando dLocal.
+     * - Body
      */
-
     console.log(
       "========== dLocal WEBHOOK DIAGNÓSTICO =========="
     );
@@ -187,7 +216,9 @@ export async function POST(request: Request) {
           rawBody.length,
 
         hasAuthorizationHeader:
-          Boolean(authorization),
+          Boolean(
+            authorization
+          ),
 
         authorizationLength:
           authorization.length,
@@ -203,7 +234,9 @@ export async function POST(request: Request) {
             : "",
 
         hasSignatureHeader:
-          Boolean(signatureHeader),
+          Boolean(
+            signatureHeader
+          ),
 
         signatureHeaderLength:
           signatureHeader.length,
@@ -215,18 +248,19 @@ export async function POST(request: Request) {
           xDate.length,
 
         xDateValue:
-          xDate
-            ? xDate
-            : "NO ENVIADO",
+          xDate || "NO ENVIADO",
 
         hasXLoginHeader:
-          Boolean(xLoginHeader),
+          Boolean(
+            xLoginHeader
+          ),
 
         xLoginHeaderLength:
           xLoginHeader.length,
 
         xVersion:
-          xVersion || "NO ENVIADO",
+          xVersion ||
+          "NO ENVIADO",
 
         envHasXLogin:
           Boolean(xLogin),
@@ -237,13 +271,20 @@ export async function POST(request: Request) {
         envHasSecret:
           Boolean(secretKey),
 
+        signingXLoginSource:
+          xLoginHeader
+            ? "HEADER"
+            : xLogin
+            ? "ENVIRONMENT"
+            : "NONE",
+
         receivedSignatureDetected:
           Boolean(
-            getSignature(request)
+            receivedSignature
           ),
 
         receivedSignatureLength:
-          getSignature(request).length,
+          receivedSignature.length,
 
         contentType:
           request.headers.get(
@@ -267,9 +308,14 @@ export async function POST(request: Request) {
     );
 
     /**
-     * Verificamos configuración.
+     * ==================================================
+     * VALIDAR CONFIGURACIÓN
+     * ==================================================
      */
-    if (!xLogin || !secretKey) {
+    if (
+      !xLogin ||
+      !secretKey
+    ) {
       console.error(
         "Webhook dLocal: faltan variables de entorno."
       );
@@ -286,8 +332,9 @@ export async function POST(request: Request) {
     }
 
     /**
-     * X-Date es obligatorio para calcular
-     * la firma.
+     * ==================================================
+     * VALIDAR X-DATE
+     * ==================================================
      */
     if (!xDate) {
       console.error(
@@ -306,11 +353,10 @@ export async function POST(request: Request) {
     }
 
     /**
-     * Extraemos la firma.
+     * ==================================================
+     * VALIDAR SIGNATURE
+     * ==================================================
      */
-    const receivedSignature =
-      getSignature(request);
-
     if (!receivedSignature) {
       console.error(
         "Webhook dLocal: no se pudo extraer la firma."
@@ -329,17 +375,17 @@ export async function POST(request: Request) {
 
     /**
      * ==================================================
-     * GENERACIÓN DE FIRMA
+     * CALCULAR FIRMA CON X-LOGIN DEL HEADER
      * ==================================================
      *
-     * Según dLocal:
+     * dLocal:
      *
      * X-Login + X-Date + RequestBody
      *
-     * HMAC-SHA256 usando Secret Key.
+     * HMAC-SHA256
      */
     const dataToSign =
-      xLogin +
+      signingXLogin +
       xDate +
       rawBody;
 
@@ -357,9 +403,109 @@ export async function POST(request: Request) {
         .toLowerCase();
 
     /**
-     * Diagnóstico de la firma.
+     * ==================================================
+     * DIAGNÓSTICO COMPARATIVO
+     * ==================================================
      *
-     * NO mostramos la firma completa.
+     * Calculamos además la firma usando
+     * exclusivamente el X-Login de ENVIRONMENT.
+     *
+     * Así podemos determinar si la diferencia
+     * viene del X-Login.
+     */
+    const expectedWithEnvLogin =
+      crypto
+        .createHmac(
+          "sha256",
+          secretKey
+        )
+        .update(
+          (xLogin || "") +
+            xDate +
+            rawBody,
+          "utf8"
+        )
+        .digest("hex")
+        .toLowerCase();
+
+    /**
+     * Firma usando X-Login del HEADER.
+     */
+    const expectedWithHeaderLogin =
+      crypto
+        .createHmac(
+          "sha256",
+          secretKey
+        )
+        .update(
+          (xLoginHeader || "") +
+            xDate +
+            rawBody,
+          "utf8"
+        )
+        .digest("hex")
+        .toLowerCase();
+
+    console.log(
+      "Webhook dLocal comparación de X-Login:",
+      {
+        envLoginPresent:
+          Boolean(xLogin),
+
+        headerLoginPresent:
+          Boolean(xLoginHeader),
+
+        sameXLogin:
+          Boolean(
+            xLogin &&
+              xLoginHeader &&
+              xLogin ===
+                xLoginHeader
+          ),
+
+        envLoginLength:
+          xLogin?.length || 0,
+
+        headerLoginLength:
+          xLoginHeader.length,
+
+        signingXLoginSource:
+          xLoginHeader
+            ? "HEADER"
+            : "ENVIRONMENT",
+
+        receivedPrefix:
+          receivedSignature.slice(
+            0,
+            8
+          ),
+
+        expectedEnvPrefix:
+          expectedWithEnvLogin.slice(
+            0,
+            8
+          ),
+
+        expectedHeaderPrefix:
+          expectedWithHeaderLogin.slice(
+            0,
+            8
+          ),
+
+        matchesEnvLogin:
+          receivedSignature ===
+          expectedWithEnvLogin,
+
+        matchesHeaderLogin:
+          receivedSignature ===
+          expectedWithHeaderLogin,
+      }
+    );
+
+    /**
+     * ==================================================
+     * COMPARACIÓN FINAL
+     * ==================================================
      */
     console.log(
       "Webhook dLocal firma:",
@@ -399,7 +545,9 @@ export async function POST(request: Request) {
     );
 
     /**
-     * Verificación segura.
+     * ==================================================
+     * VERIFICACIÓN SEGURA
+     * ==================================================
      */
     if (
       !verifySignature(
@@ -428,7 +576,7 @@ export async function POST(request: Request) {
 
     /**
      * ==================================================
-     * PARSEAMOS EL BODY
+     * PARSEAR JSON
      * ==================================================
      */
     let notification: any;
@@ -454,16 +602,20 @@ export async function POST(request: Request) {
     }
 
     /**
-     * Extraemos información básica.
+     * ==================================================
+     * DATOS DE LA NOTIFICACIÓN
+     * ==================================================
      */
     const paymentId =
       notification?.id || "";
 
     const orderId =
-      notification?.order_id || "";
+      notification?.order_id ||
+      "";
 
     const status =
-      notification?.status || "";
+      notification?.status ||
+      "";
 
     const statusCode =
       notification?.status_code ??
@@ -482,7 +634,8 @@ export async function POST(request: Request) {
       null;
 
     const payer =
-      notification?.payer || {};
+      notification?.payer ||
+      {};
 
     const userReference =
       payer?.user_reference ||
@@ -495,9 +648,9 @@ export async function POST(request: Request) {
         : "";
 
     /**
-     * Log seguro del contenido importante.
-     *
-     * NO mostramos datos sensibles completos.
+     * ==================================================
+     * LOG SEGURO DE NOTIFICACIÓN
+     * ==================================================
      */
     console.log(
       "Webhook dLocal notificación:",
@@ -542,8 +695,9 @@ export async function POST(request: Request) {
     );
 
     /**
-     * Necesitamos ID y order_id para
-     * guardar correctamente el pago.
+     * ==================================================
+     * VALIDAR ID Y ORDER_ID
+     * ==================================================
      */
     if (
       !paymentId ||
@@ -574,7 +728,8 @@ export async function POST(request: Request) {
 
     /**
      * Guardamos la notificación únicamente
-     * después de comprobar la firma.
+     * después de verificar correctamente
+     * la firma.
      */
     await db
       .ref(
@@ -627,16 +782,17 @@ export async function POST(request: Request) {
      * ==================================================
      * IDENTIFICAR USUARIO
      * ==================================================
-     *
-     * Primero intentamos usar:
-     *
-     * payer.user_reference
-     *
-     * que en MiOficio contiene el UID de Firebase.
      */
     let userEmail =
       payerEmail;
 
+    /**
+     * Intentamos primero con
+     * payer.user_reference.
+     *
+     * En MiOficio debería contener
+     * el UID de Firebase.
+     */
     if (
       userReference
     ) {
@@ -668,7 +824,7 @@ export async function POST(request: Request) {
     }
 
     /**
-     * Si no conseguimos el email,
+     * Si no podemos identificar al usuario,
      * no activamos Premium.
      */
     if (!userEmail) {
@@ -693,8 +849,9 @@ export async function POST(request: Request) {
     }
 
     /**
-     * Generamos la clave compatible con
-     * la estructura actual de Firebase.
+     * ==================================================
+     * FIREBASE USER KEY
+     * ==================================================
      */
     const emailKey =
       safeEmailKey(
@@ -707,7 +864,7 @@ export async function POST(request: Request) {
 
     /**
      * ==================================================
-     * ACTIVAR PREMIUM
+     * PERFIL
      * ==================================================
      */
     const perfilRef =
@@ -725,6 +882,11 @@ export async function POST(request: Request) {
         ? perfilSnapshot.val()
         : {};
 
+    /**
+     * ==================================================
+     * ACTIVAR PREMIUM
+     * ==================================================
+     */
     await perfilRef.set({
       ...perfilActual,
 
@@ -755,10 +917,12 @@ export async function POST(request: Request) {
     );
 
     /**
-     * Respuesta 200.
+     * ==================================================
+     * RESPUESTA A DLOCAL
+     * ==================================================
      *
-     * Esto le indica a dLocal que
-     * recibimos correctamente la notificación.
+     * HTTP 200 = notificación recibida
+     * correctamente.
      */
     return NextResponse.json(
       {
@@ -793,10 +957,10 @@ export async function POST(request: Request) {
  * GET
  *
  * Sirve solamente para comprobar que
- * la ruta está publicada y funcionando.
+ * el endpoint está publicado.
  *
- * dLocal NO utiliza este GET para enviar
- * las notificaciones de pago.
+ * Las notificaciones de dLocal llegan
+ * mediante POST.
  */
 export async function GET() {
   return NextResponse.json({
