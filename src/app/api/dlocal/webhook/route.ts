@@ -17,18 +17,16 @@ function safeEmailKey(email: string): string {
 }
 
 /**
- * Extrae únicamente el hash de la firma.
+ * Obtiene la firma enviada por dLocal.
  *
- * Soporta:
+ * dLocal utiliza:
  *
  * Authorization:
- * V2-HMAC-SHA256, Signature: abc...
+ * V2-HMAC-SHA256, Signature: <hash>
  *
- * Signature:
- * abc...
- *
- * Signature:
- * V2-HMAC-SHA256, Signature: abc...
+ * También dejamos soporte para un header
+ * "signature" por si el entorno de notificaciones
+ * lo entrega de esa manera.
  */
 function getSignature(request: Request): string {
   const authorization =
@@ -72,19 +70,18 @@ function getSignature(request: Request): string {
   return "";
 }
 
+/**
+ * Compara dos firmas de forma segura.
+ */
 function verifySignature(
   received: string,
   expected: string
 ): boolean {
-  const receivedBuffer = Buffer.from(
-    received,
-    "utf8"
-  );
+  const receivedBuffer =
+    Buffer.from(received, "utf8");
 
-  const expectedBuffer = Buffer.from(
-    expected,
-    "utf8"
-  );
+  const expectedBuffer =
+    Buffer.from(expected, "utf8");
 
   if (
     receivedBuffer.length !==
@@ -99,24 +96,179 @@ function verifySignature(
   );
 }
 
+/**
+ * POST
+ *
+ * Este es el endpoint que recibe la notificación
+ * de dLocal.
+ */
 export async function POST(request: Request) {
   try {
     /**
-     * MUY IMPORTANTE:
-     * El body debe leerse como texto sin modificarlo,
-     * porque forma parte de la firma HMAC.
+     * IMPORTANTE:
+     *
+     * No usamos request.json().
+     *
+     * Necesitamos conservar exactamente el body
+     * recibido porque el body forma parte de la
+     * firma HMAC.
      */
-    const rawBody = await request.text();
+    const rawBody =
+      await request.text();
 
+    /**
+     * Variables de entorno.
+     */
     const xLogin =
       process.env.DLOCAL_X_LOGIN?.trim();
 
     const secretKey =
       process.env.DLOCAL_SECRET_KEY?.trim();
 
+    /**
+     * Headers enviados por dLocal.
+     */
     const xDate =
-      request.headers.get("x-date")?.trim();
+      request.headers
+        .get("x-date")
+        ?.trim() || "";
 
+    const authorization =
+      request.headers
+        .get("authorization")
+        ?.trim() || "";
+
+    const signatureHeader =
+      request.headers
+        .get("signature")
+        ?.trim() || "";
+
+    const xLoginHeader =
+      request.headers
+        .get("x-login")
+        ?.trim() || "";
+
+    const xVersion =
+      request.headers
+        .get("x-version")
+        ?.trim() || "";
+
+    /**
+     * ==================================================
+     * DIAGNÓSTICO SEGURO
+     * ==================================================
+     *
+     * NO mostramos:
+     *
+     * - DLOCAL_X_LOGIN completo
+     * - DLOCAL_SECRET_KEY
+     * - Authorization completo
+     * - Signature completa
+     * - Body completo
+     *
+     * Solo mostramos información útil para
+     * descubrir qué está enviando dLocal.
+     */
+
+    console.log(
+      "========== dLocal WEBHOOK DIAGNÓSTICO =========="
+    );
+
+    console.log(
+      "Webhook dLocal diagnóstico:",
+      {
+        method:
+          request.method,
+
+        url:
+          request.url,
+
+        bodyLength:
+          rawBody.length,
+
+        hasAuthorizationHeader:
+          Boolean(authorization),
+
+        authorizationLength:
+          authorization.length,
+
+        authorizationPrefix:
+          authorization
+            ? authorization
+                .slice(0, 25)
+                .replace(
+                  /Signature.*$/i,
+                  "Signature: ***"
+                )
+            : "",
+
+        hasSignatureHeader:
+          Boolean(signatureHeader),
+
+        signatureHeaderLength:
+          signatureHeader.length,
+
+        hasXDate:
+          Boolean(xDate),
+
+        xDateLength:
+          xDate.length,
+
+        xDateValue:
+          xDate
+            ? xDate
+            : "NO ENVIADO",
+
+        hasXLoginHeader:
+          Boolean(xLoginHeader),
+
+        xLoginHeaderLength:
+          xLoginHeader.length,
+
+        xVersion:
+          xVersion || "NO ENVIADO",
+
+        envHasXLogin:
+          Boolean(xLogin),
+
+        envXLoginLength:
+          xLogin?.length || 0,
+
+        envHasSecret:
+          Boolean(secretKey),
+
+        receivedSignatureDetected:
+          Boolean(
+            getSignature(request)
+          ),
+
+        receivedSignatureLength:
+          getSignature(request).length,
+
+        contentType:
+          request.headers.get(
+            "content-type"
+          ) || "",
+
+        userAgent:
+          request.headers.get(
+            "user-agent"
+          ) || "",
+
+        allHeaders:
+          Array.from(
+            request.headers.keys()
+          ),
+      }
+    );
+
+    console.log(
+      "================================================="
+    );
+
+    /**
+     * Verificamos configuración.
+     */
     if (!xLogin || !secretKey) {
       console.error(
         "Webhook dLocal: faltan variables de entorno."
@@ -127,10 +279,16 @@ export async function POST(request: Request) {
           error:
             "Configuración dLocal incompleta.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
+    /**
+     * X-Date es obligatorio para calcular
+     * la firma.
+     */
     if (!xDate) {
       console.error(
         "Webhook dLocal: falta X-Date."
@@ -138,61 +296,24 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error: "Falta X-Date.",
+          error:
+            "Falta X-Date.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
+    /**
+     * Extraemos la firma.
+     */
     const receivedSignature =
       getSignature(request);
 
-    /**
-     * Diagnóstico seguro.
-     *
-     * NO mostramos:
-     * - DLOCAL_X_LOGIN
-     * - DLOCAL_SECRET_KEY
-     * - Authorization completo
-     * - Signature completa
-     * - Body
-     */
-    console.log(
-      "Webhook dLocal diagnóstico:",
-      {
-        hasAuthorizationHeader:
-          Boolean(
-            request.headers.get(
-              "authorization"
-            )
-          ),
-
-        hasSignatureHeader:
-          Boolean(
-            request.headers.get(
-              "signature"
-            )
-          ),
-
-        hasXDate:
-          Boolean(
-            request.headers.get("x-date")
-          ),
-
-        bodyLength:
-          rawBody.length,
-
-        signatureDetected:
-          Boolean(receivedSignature),
-
-        signatureLength:
-          receivedSignature.length,
-      }
-    );
-
     if (!receivedSignature) {
       console.error(
-        "Webhook dLocal: falta Signature/Authorization."
+        "Webhook dLocal: no se pudo extraer la firma."
       );
 
       return NextResponse.json(
@@ -200,19 +321,27 @@ export async function POST(request: Request) {
           error:
             "Falta Signature/Authorization.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
     /**
-     * dLocal Payins:
+     * ==================================================
+     * GENERACIÓN DE FIRMA
+     * ==================================================
+     *
+     * Según dLocal:
      *
      * X-Login + X-Date + RequestBody
      *
-     * HMAC-SHA256 con DLOCAL_SECRET_KEY.
+     * HMAC-SHA256 usando Secret Key.
      */
     const dataToSign =
-      xLogin + xDate + rawBody;
+      xLogin +
+      xDate +
+      rawBody;
 
     const expectedSignature =
       crypto
@@ -220,10 +349,58 @@ export async function POST(request: Request) {
           "sha256",
           secretKey
         )
-        .update(dataToSign, "utf8")
+        .update(
+          dataToSign,
+          "utf8"
+        )
         .digest("hex")
         .toLowerCase();
 
+    /**
+     * Diagnóstico de la firma.
+     *
+     * NO mostramos la firma completa.
+     */
+    console.log(
+      "Webhook dLocal firma:",
+      {
+        receivedSignatureLength:
+          receivedSignature.length,
+
+        expectedSignatureLength:
+          expectedSignature.length,
+
+        receivedSignaturePrefix:
+          receivedSignature.slice(
+            0,
+            8
+          ),
+
+        expectedSignaturePrefix:
+          expectedSignature.slice(
+            0,
+            8
+          ),
+
+        signaturesMatch:
+          receivedSignature ===
+          expectedSignature,
+
+        receivedIs64Hex:
+          /^[a-fA-F0-9]{64}$/.test(
+            receivedSignature
+          ),
+
+        expectedIs64Hex:
+          /^[a-fA-F0-9]{64}$/.test(
+            expectedSignature
+          ),
+      }
+    );
+
+    /**
+     * Verificación segura.
+     */
     if (
       !verifySignature(
         receivedSignature,
@@ -231,66 +408,147 @@ export async function POST(request: Request) {
       )
     ) {
       console.error(
-        "Webhook dLocal: firma inválida."
+        "Webhook dLocal: FIRMA INVÁLIDA."
       );
 
       return NextResponse.json(
         {
-          error: "Firma inválida.",
+          error:
+            "Firma inválida.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
     console.log(
-      "Webhook dLocal: firma válida."
+      "Webhook dLocal: FIRMA VÁLIDA."
     );
 
+    /**
+     * ==================================================
+     * PARSEAMOS EL BODY
+     * ==================================================
+     */
     let notification: any;
 
     try {
       notification =
         JSON.parse(rawBody);
-    } catch {
+    } catch (error) {
       console.error(
-        "Webhook dLocal: JSON inválido."
+        "Webhook dLocal: JSON inválido.",
+        error
       );
 
       return NextResponse.json(
         {
-          error: "JSON inválido.",
+          error:
+            "JSON inválido.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /**
+     * Extraemos información básica.
+     */
     const paymentId =
-      notification?.id;
+      notification?.id || "";
 
     const orderId =
-      notification?.order_id;
+      notification?.order_id || "";
 
     const status =
-      notification?.status;
+      notification?.status || "";
+
+    const statusCode =
+      notification?.status_code ??
+      null;
+
+    const statusDetail =
+      notification?.status_detail ??
+      null;
 
     const amount =
-      notification?.amount ?? null;
+      notification?.amount ??
+      null;
 
     const currency =
-      notification?.currency ?? null;
+      notification?.currency ??
+      null;
 
     const payer =
-      notification?.payer ?? {};
+      notification?.payer || {};
 
     const userReference =
-      payer?.user_reference ?? "";
+      payer?.user_reference ||
+      "";
 
     const payerEmail =
-      typeof payer?.email === "string"
+      typeof payer?.email ===
+      "string"
         ? payer.email.trim()
         : "";
 
-    if (!paymentId || !orderId) {
+    /**
+     * Log seguro del contenido importante.
+     *
+     * NO mostramos datos sensibles completos.
+     */
+    console.log(
+      "Webhook dLocal notificación:",
+      {
+        paymentId:
+          paymentId
+            ? String(paymentId)
+                .slice(0, 20)
+            : "",
+
+        orderId:
+          orderId
+            ? String(orderId)
+                .slice(0, 40)
+            : "",
+
+        status,
+
+        statusCode,
+
+        statusDetail,
+
+        amount,
+
+        currency,
+
+        hasPayer:
+          Boolean(
+            notification?.payer
+          ),
+
+        hasUserReference:
+          Boolean(
+            userReference
+          ),
+
+        hasPayerEmail:
+          Boolean(
+            payerEmail
+          ),
+      }
+    );
+
+    /**
+     * Necesitamos ID y order_id para
+     * guardar correctamente el pago.
+     */
+    if (
+      !paymentId ||
+      !orderId
+    ) {
       console.error(
         "Webhook dLocal: faltan id u order_id."
       );
@@ -300,15 +558,23 @@ export async function POST(request: Request) {
           error:
             "Faltan datos obligatorios.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const db = getAdminDb();
+    /**
+     * ==================================================
+     * FIREBASE
+     * ==================================================
+     */
+    const db =
+      getAdminDb();
 
     /**
-     * Guardamos la notificación completa
-     * solamente después de verificar la firma.
+     * Guardamos la notificación únicamente
+     * después de comprobar la firma.
      */
     await db
       .ref(
@@ -320,42 +586,60 @@ export async function POST(request: Request) {
         received_at:
           new Date().toISOString(),
 
-        signature_verified: true,
+        signature_verified:
+          true,
       });
 
     console.log(
-      "Webhook dLocal guardado:",
+      "Webhook dLocal: pago guardado en Firebase.",
       paymentId
     );
 
     /**
-     * Solo activamos Premium cuando
-     * dLocal informa PAID.
+     * ==================================================
+     * ESTADO DEL PAGO
+     * ==================================================
      */
-    if (status !== "PAID") {
+    if (
+      status !== "PAID"
+    ) {
       console.log(
-        "Webhook dLocal: estado:",
+        "Webhook dLocal: pago recibido con estado:",
         status
       );
 
       return NextResponse.json(
         {
           received: true,
-          premiumActivated: false,
+
+          premiumActivated:
+            false,
+
           status,
         },
-        { status: 200 }
+        {
+          status: 200,
+        }
       );
     }
 
     /**
-     * Primero intentamos identificar al usuario
-     * mediante payer.user_reference.
+     * ==================================================
+     * IDENTIFICAR USUARIO
+     * ==================================================
+     *
+     * Primero intentamos usar:
+     *
+     * payer.user_reference
+     *
+     * que en MiOficio contiene el UID de Firebase.
      */
     let userEmail =
       payerEmail;
 
-    if (userReference) {
+    if (
+      userReference
+    ) {
       try {
         const auth =
           getAdminAuth();
@@ -365,10 +649,16 @@ export async function POST(request: Request) {
             userReference
           );
 
-        if (firebaseUser.email) {
+        if (
+          firebaseUser.email
+        ) {
           userEmail =
             firebaseUser.email.trim();
         }
+
+        console.log(
+          "Webhook dLocal: usuario Firebase identificado."
+        );
       } catch (error) {
         console.error(
           "Webhook dLocal: no se pudo obtener el usuario Firebase.",
@@ -377,30 +667,58 @@ export async function POST(request: Request) {
       }
     }
 
+    /**
+     * Si no conseguimos el email,
+     * no activamos Premium.
+     */
     if (!userEmail) {
       console.error(
-        "Webhook dLocal: no se pudo identificar el usuario."
+        "Webhook dLocal: no se pudo identificar al usuario."
       );
 
       return NextResponse.json(
         {
           received: true,
-          premiumActivated: false,
+
+          premiumActivated:
+            false,
+
+          reason:
+            "Usuario no identificado.",
         },
-        { status: 200 }
+        {
+          status: 200,
+        }
       );
     }
 
+    /**
+     * Generamos la clave compatible con
+     * la estructura actual de Firebase.
+     */
     const emailKey =
-      safeEmailKey(userEmail);
+      safeEmailKey(
+        userEmail
+      );
 
+    console.log(
+      "Webhook dLocal: emailKey generado."
+    );
+
+    /**
+     * ==================================================
+     * ACTIVAR PREMIUM
+     * ==================================================
+     */
     const perfilRef =
       db.ref(
         `usuarios_data/${emailKey}/perfil`
       );
 
     const perfilSnapshot =
-      await perfilRef.once("value");
+      await perfilRef.once(
+        "value"
+      );
 
     const perfilActual =
       perfilSnapshot.exists()
@@ -410,7 +728,8 @@ export async function POST(request: Request) {
     await perfilRef.set({
       ...perfilActual,
 
-      es_premium: true,
+      es_premium:
+        true,
 
       premium_activado_at:
         new Date().toISOString(),
@@ -432,24 +751,29 @@ export async function POST(request: Request) {
     });
 
     console.log(
-      "Webhook dLocal: PREMIUM ACTIVADO.",
-      {
-        emailKey,
-        paymentId,
-        orderId,
-      }
+      "Webhook dLocal: PREMIUM ACTIVADO."
     );
 
+    /**
+     * Respuesta 200.
+     *
+     * Esto le indica a dLocal que
+     * recibimos correctamente la notificación.
+     */
     return NextResponse.json(
       {
         received: true,
-        premiumActivated: true,
+
+        premiumActivated:
+          true,
       },
-      { status: 200 }
+      {
+        status: 200,
+      }
     );
   } catch (error) {
     console.error(
-      "Webhook dLocal: error interno.",
+      "Webhook dLocal: ERROR INTERNO.",
       error
     );
 
@@ -458,17 +782,36 @@ export async function POST(request: Request) {
         error:
           "Error interno del webhook.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
 
+/**
+ * GET
+ *
+ * Sirve solamente para comprobar que
+ * la ruta está publicada y funcionando.
+ *
+ * dLocal NO utiliza este GET para enviar
+ * las notificaciones de pago.
+ */
 export async function GET() {
   return NextResponse.json({
     ok: true,
+
     service:
       "MiOficio dLocal webhook",
+
     endpoint:
       "/api/dlocal/webhook",
+
+    method:
+      "POST",
+
+    message:
+      "Webhook activo. Las notificaciones de dLocal llegan mediante POST.",
   });
 }
