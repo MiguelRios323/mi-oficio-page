@@ -16,15 +16,27 @@ function safeEmailKey(email: string): string {
     .slice(0, 100);
 }
 
+/**
+ * Extrae únicamente el hash de la firma.
+ *
+ * Soporta:
+ *
+ * Authorization:
+ * V2-HMAC-SHA256, Signature: abc...
+ *
+ * Signature:
+ * abc...
+ *
+ * Signature:
+ * V2-HMAC-SHA256, Signature: abc...
+ */
 function getSignature(request: Request): string {
-  const signatureHeader =
-    request.headers.get("signature");
+  const authorization =
+    request.headers.get("authorization");
 
-  if (signatureHeader) {
-    const value = signatureHeader.trim();
+  if (authorization) {
+    const value = authorization.trim();
 
-    // Formato:
-    // V2-HMAC-SHA256, Signature: abc123...
     const match = value.match(
       /Signature\s*:\s*([a-fA-F0-9]{64})/i
     );
@@ -33,25 +45,27 @@ function getSignature(request: Request): string {
       return match[1].toLowerCase();
     }
 
-    // Formato:
-    // abc123...
     if (/^[a-fA-F0-9]{64}$/.test(value)) {
       return value.toLowerCase();
     }
   }
 
-  const authorization =
-    request.headers.get("authorization");
+  const signatureHeader =
+    request.headers.get("signature");
 
-  if (authorization) {
-    // Formato:
-    // V2-HMAC-SHA256, Signature: abc123...
-    const match = authorization.match(
+  if (signatureHeader) {
+    const value = signatureHeader.trim();
+
+    const match = value.match(
       /Signature\s*:\s*([a-fA-F0-9]{64})/i
     );
 
     if (match) {
       return match[1].toLowerCase();
+    }
+
+    if (/^[a-fA-F0-9]{64}$/.test(value)) {
+      return value.toLowerCase();
     }
   }
 
@@ -87,6 +101,11 @@ function verifySignature(
 
 export async function POST(request: Request) {
   try {
+    /**
+     * MUY IMPORTANTE:
+     * El body debe leerse como texto sin modificarlo,
+     * porque forma parte de la firma HMAC.
+     */
     const rawBody = await request.text();
 
     const xLogin =
@@ -128,16 +147,19 @@ export async function POST(request: Request) {
     const receivedSignature =
       getSignature(request);
 
-    // Diagnóstico seguro:
-    // NO mostramos secretos ni la firma completa.
+    /**
+     * Diagnóstico seguro.
+     *
+     * NO mostramos:
+     * - DLOCAL_X_LOGIN
+     * - DLOCAL_SECRET_KEY
+     * - Authorization completo
+     * - Signature completa
+     * - Body
+     */
     console.log(
       "Webhook dLocal diagnóstico:",
       {
-        hasSignatureHeader:
-          Boolean(
-            request.headers.get("signature")
-          ),
-
         hasAuthorizationHeader:
           Boolean(
             request.headers.get(
@@ -145,13 +167,17 @@ export async function POST(request: Request) {
             )
           ),
 
+        hasSignatureHeader:
+          Boolean(
+            request.headers.get(
+              "signature"
+            )
+          ),
+
         hasXDate:
           Boolean(
             request.headers.get("x-date")
           ),
-
-        xDate:
-          xDate,
 
         bodyLength:
           rawBody.length,
@@ -166,17 +192,25 @@ export async function POST(request: Request) {
 
     if (!receivedSignature) {
       console.error(
-        "Webhook dLocal: falta Signature."
+        "Webhook dLocal: falta Signature/Authorization."
       );
 
       return NextResponse.json(
         {
-          error: "Falta Signature.",
+          error:
+            "Falta Signature/Authorization.",
         },
         { status: 401 }
       );
     }
 
+    /**
+     * dLocal Payins:
+     *
+     * X-Login + X-Date + RequestBody
+     *
+     * HMAC-SHA256 con DLOCAL_SECRET_KEY.
+     */
     const dataToSign =
       xLogin + xDate + rawBody;
 
@@ -215,7 +249,8 @@ export async function POST(request: Request) {
     let notification: any;
 
     try {
-      notification = JSON.parse(rawBody);
+      notification =
+        JSON.parse(rawBody);
     } catch {
       console.error(
         "Webhook dLocal: JSON inválido."
@@ -271,14 +306,20 @@ export async function POST(request: Request) {
 
     const db = getAdminDb();
 
+    /**
+     * Guardamos la notificación completa
+     * solamente después de verificar la firma.
+     */
     await db
       .ref(
         `dlocal_payments/${paymentId}`
       )
       .set({
         ...notification,
+
         received_at:
           new Date().toISOString(),
+
         signature_verified: true,
       });
 
@@ -287,6 +328,10 @@ export async function POST(request: Request) {
       paymentId
     );
 
+    /**
+     * Solo activamos Premium cuando
+     * dLocal informa PAID.
+     */
     if (status !== "PAID") {
       console.log(
         "Webhook dLocal: estado:",
@@ -303,11 +348,17 @@ export async function POST(request: Request) {
       );
     }
 
-    let userEmail = payerEmail;
+    /**
+     * Primero intentamos identificar al usuario
+     * mediante payer.user_reference.
+     */
+    let userEmail =
+      payerEmail;
 
     if (userReference) {
       try {
-        const auth = getAdminAuth();
+        const auth =
+          getAdminAuth();
 
         const firebaseUser =
           await auth.getUser(
