@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomUUID } from "crypto";
-import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
+
+import {
+  getAdminAuth,
+  getAdminDb,
+} from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -30,9 +34,9 @@ const NOTIFICATION_URL =
   process.env.DLOCAL_NOTIFICATION_URL?.trim() ||
   `${APP_URL}/api/dlocal/webhook`;
 
-// ---------------------------------------------------------
-// Firebase email -> clave utilizada en Realtime Database
-// ---------------------------------------------------------
+const PREMIUM_AMOUNT = 4999;
+const PREMIUM_CURRENCY = "ARS";
+const PREMIUM_COUNTRY = "AR";
 
 function safeEmailKey(email: string): string {
   return email
@@ -40,10 +44,6 @@ function safeEmailKey(email: string): string {
     .replace(/[.#$[\]\\/]/g, "_")
     .slice(0, 100);
 }
-
-// ---------------------------------------------------------
-// Crear firma HMAC para dLocal
-// ---------------------------------------------------------
 
 function createSignature(
   login: string,
@@ -56,10 +56,6 @@ function createSignature(
     .digest("hex");
 }
 
-// ---------------------------------------------------------
-// Crear identificador único de orden
-// ---------------------------------------------------------
-
 function createOrderId(): string {
   return `MIOFICIO-${Date.now()}-${randomUUID().slice(
     0,
@@ -67,14 +63,10 @@ function createOrderId(): string {
   )}`;
 }
 
-// ---------------------------------------------------------
-// POST /api/dlocal/create
-// ---------------------------------------------------------
-
 export async function POST(request: NextRequest) {
   try {
     // -------------------------------------------------------
-    // 1. Verificar configuración de dLocal
+    // 1. Configuración
     // -------------------------------------------------------
 
     if (
@@ -93,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 2. Obtener token de Firebase
+    // 2. Firebase token
     // -------------------------------------------------------
 
     const authorization =
@@ -126,13 +118,15 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 3. Verificar usuario con Firebase Admin
+    // 3. Verificar usuario
     // -------------------------------------------------------
 
     const adminAuth = getAdminAuth();
 
     const decodedToken =
-      await adminAuth.verifyIdToken(firebaseToken);
+      await adminAuth.verifyIdToken(
+        firebaseToken
+      );
 
     const uid = decodedToken.uid;
 
@@ -153,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 4. Buscar perfil del usuario
+    // 4. Obtener perfil
     // -------------------------------------------------------
 
     const emailKey =
@@ -172,20 +166,28 @@ export async function POST(request: NextRequest) {
       profileSnapshot.val() ?? {};
 
     // -------------------------------------------------------
-    // 5. Obtener CUIT / DNI / CUIL
+    // 5. Evitar doble Premium
+    // -------------------------------------------------------
+
+    if (perfil?.es_premium === true) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Tu cuenta ya tiene MiOficio Premium activo.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // -------------------------------------------------------
+    // 6. Documento
     // -------------------------------------------------------
 
     const rawDocument =
       String(
         perfil?.cuit_cuil ?? ""
       ).trim();
-
-    // Elimina guiones, espacios y puntos.
-    //
-    // Ejemplo:
-    // 20-12345678-9
-    // se convierte en:
-    // 20123456789
 
     const document =
       rawDocument.replace(/\D/g, "");
@@ -200,10 +202,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Argentina:
-    // DNI: 7 a 9 dígitos
-    // CUIT/CUIL: 11 dígitos
 
     if (
       !/^(?:\d{7,9}|\d{11})$/.test(
@@ -221,24 +219,37 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 6. Crear order_id
+    // 7. Orden
     // -------------------------------------------------------
 
     const orderId =
       createOrderId();
 
     // -------------------------------------------------------
-    // 7. Preparar cuerpo del pago
+    // 8. Pago inicial
+    //
+    // IMPORTANTE:
+    //
+    // NO enviamos payment_method_id.
+    //
+    // dLocal Checkout REDIRECT determina el medio de pago.
+    //
+    // save_payment_method pide a dLocal guardar la tarjeta
+    // para futuras operaciones.
     // -------------------------------------------------------
 
     const paymentBody = {
-      amount: 4999,
+      amount:
+        PREMIUM_AMOUNT,
 
-      currency: "ARS",
+      currency:
+        PREMIUM_CURRENCY,
 
-      country: "AR",
+      country:
+        PREMIUM_COUNTRY,
 
-      payment_method_flow: "REDIRECT",
+      payment_method_flow:
+        "REDIRECT",
 
       payer: {
         name: String(
@@ -247,40 +258,41 @@ export async function POST(request: NextRequest) {
             firebaseEmail.split("@")[0]
         ).trim(),
 
-        email: firebaseEmail,
+        email:
+          firebaseEmail,
 
-        // Documento obligatorio para Argentina.
         document,
 
-        // Identificador interno del usuario.
-        user_reference: uid,
+        user_reference:
+          uid,
       },
 
-      order_id: orderId,
+      order_id:
+        orderId,
 
       description:
-        "MiOficio Premium",
+        "MiOficio Premium - pago inicial",
 
       notification_url:
         NOTIFICATION_URL,
 
       callback_url:
         CALLBACK_URL,
+
+      save_payment_method: {
+        save: true,
+      },
     };
 
     const body =
       JSON.stringify(paymentBody);
 
     // -------------------------------------------------------
-    // 8. Crear fecha para firma
+    // 9. Firma
     // -------------------------------------------------------
 
     const xDate =
       new Date().toISOString();
-
-    // -------------------------------------------------------
-    // 9. Crear firma HMAC
-    // -------------------------------------------------------
 
     const signature =
       createSignature(
@@ -291,7 +303,7 @@ export async function POST(request: NextRequest) {
       );
 
     // -------------------------------------------------------
-    // 10. Idempotency key
+    // 10. Idempotencia
     // -------------------------------------------------------
 
     const idempotencyKey =
@@ -302,35 +314,32 @@ export async function POST(request: NextRequest) {
     // -------------------------------------------------------
 
     console.log(
-      "Enviando pago a dLocal:",
+      "Enviando pago inicial Premium a dLocal:",
       {
         amount:
-          paymentBody.amount,
+          PREMIUM_AMOUNT,
 
         currency:
-          paymentBody.currency,
+          PREMIUM_CURRENCY,
 
         country:
-          paymentBody.country,
+          PREMIUM_COUNTRY,
 
         flow:
-          paymentBody.payment_method_flow,
+          "REDIRECT",
+
+        savePaymentMethod:
+          true,
 
         orderId,
 
         hasDocument:
           Boolean(document),
-
-        callbackUrl:
-          CALLBACK_URL,
-
-        notificationUrl:
-          NOTIFICATION_URL,
       }
     );
 
     // -------------------------------------------------------
-    // 12. Crear pago en dLocal
+    // 12. Crear pago
     // -------------------------------------------------------
 
     const dLocalResponse =
@@ -361,21 +370,19 @@ export async function POST(request: NextRequest) {
             "X-Idempotency-Key":
               idempotencyKey,
 
-            // IMPORTANTE:
-            // El formato correcto lleva ":" después
-            // de "Signature".
             "Authorization":
               `V2-HMAC-SHA256, Signature: ${signature}`,
           },
 
           body,
 
-          cache: "no-store",
+          cache:
+            "no-store",
         }
       );
 
     // -------------------------------------------------------
-    // 13. Leer respuesta de dLocal
+    // 13. Respuesta
     // -------------------------------------------------------
 
     const rawResponse =
@@ -393,46 +400,37 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 14. Manejar errores de dLocal
+    // 14. Error dLocal
     // -------------------------------------------------------
 
     if (!dLocalResponse.ok) {
       console.error(
-        "========================================"
-      );
+        "dLocal rechazó el pago inicial Premium:",
+        {
+          status:
+            dLocalResponse.status,
 
-      console.error(
-        "dLocal rechazó la creación del pago"
-      );
+          code:
+            dLocalData?.code,
 
-      console.error({
-        status:
-          dLocalResponse.status,
+          message:
+            dLocalData?.message,
 
-        code:
-          dLocalData?.code,
+          param:
+            dLocalData?.param,
 
-        message:
-          dLocalData?.message,
+          error:
+            dLocalData?.error,
 
-        param:
-          dLocalData?.param,
+          detail:
+            dLocalData?.detail,
 
-        error:
-          dLocalData?.error,
+          response:
+            dLocalData ??
+            rawResponse,
 
-        detail:
-          dLocalData?.detail,
-
-        response:
-          dLocalData ??
-          rawResponse,
-
-        orderId,
-      });
-
-      console.error(
-        "========================================"
+          orderId,
+        }
       );
 
       const dLocalMessage =
@@ -465,8 +463,7 @@ export async function POST(request: NextRequest) {
           status:
             dLocalResponse.status >=
               400 &&
-            dLocalResponse.status <
-              600
+            dLocalResponse.status < 600
               ? dLocalResponse.status
               : 502,
         }
@@ -474,7 +471,7 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 15. Obtener URL de checkout
+    // 15. Checkout
     // -------------------------------------------------------
 
     const checkoutUrl =
@@ -484,8 +481,10 @@ export async function POST(request: NextRequest) {
 
     if (!checkoutUrl) {
       console.error(
-        "dLocal creó el pago pero no devolvió URL:",
-        dLocalData
+        "dLocal creó el pago pero no devolvió checkout:",
+        {
+          orderId,
+        }
       );
 
       return NextResponse.json(
@@ -502,7 +501,55 @@ export async function POST(request: NextRequest) {
     }
 
     // -------------------------------------------------------
-    // 16. Respuesta al frontend
+    // 16. Guardar orden pendiente
+    //
+    // NO guardamos datos sensibles de tarjeta.
+    // El card_id llegará desde dLocal después del pago.
+    // -------------------------------------------------------
+
+    await database
+      .ref(
+        `dlocal_orders/${orderId}`
+      )
+      .set({
+        order_id:
+          orderId,
+
+        uid,
+
+        email:
+          firebaseEmail,
+
+        amount:
+          PREMIUM_AMOUNT,
+
+        currency:
+          PREMIUM_CURRENCY,
+
+        country:
+          PREMIUM_COUNTRY,
+
+        product:
+          "MiOficio Premium",
+
+        provider:
+          "dlocal",
+
+        status:
+          "PENDING",
+
+        payment_flow:
+          "REDIRECT",
+
+        save_payment_method:
+          true,
+
+        created_at:
+          new Date().toISOString(),
+      });
+
+    // -------------------------------------------------------
+    // 17. Respuesta
     // -------------------------------------------------------
 
     return NextResponse.json({
@@ -511,12 +558,11 @@ export async function POST(request: NextRequest) {
       checkoutUrl,
 
       orderId,
+
+      status:
+        "PENDING",
     });
   } catch (error) {
-    // -------------------------------------------------------
-    // 17. Error interno
-    // -------------------------------------------------------
-
     console.error(
       "Error interno creando pago dLocal:",
       error
@@ -534,4 +580,25 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+
+    service:
+      "MiOficio dLocal create payment",
+
+    method:
+      "POST",
+
+    product:
+      "MiOficio Premium",
+
+    amount:
+      PREMIUM_AMOUNT,
+
+    currency:
+      PREMIUM_CURRENCY,
+  });
 }
