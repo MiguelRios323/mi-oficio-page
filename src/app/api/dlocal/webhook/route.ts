@@ -16,14 +16,6 @@ function safeEmailKey(email: string): string {
     .slice(0, 100);
 }
 
-/**
- * Extrae la firma enviada por dLocal.
- *
- * Formato esperado:
- *
- * Authorization:
- * V2-HMAC-SHA256, Signature: <64 caracteres hex>
- */
 function getSignature(request: Request): string {
   const authorization =
     request.headers.get("authorization");
@@ -44,16 +36,11 @@ function getSignature(request: Request): string {
     }
   }
 
-  /**
-   * Compatibilidad adicional por si dLocal
-   * enviara la firma en un header separado.
-   */
   const signatureHeader =
     request.headers.get("signature");
 
   if (signatureHeader) {
-    const value =
-      signatureHeader.trim();
+    const value = signatureHeader.trim();
 
     const match = value.match(
       /Signature\s*:\s*([a-fA-F0-9]{64})/i
@@ -71,9 +58,6 @@ function getSignature(request: Request): string {
   return "";
 }
 
-/**
- * Comparación segura de firmas.
- */
 function verifySignature(
   received: string,
   expected: string
@@ -97,227 +81,51 @@ function verifySignature(
   );
 }
 
-/**
- * POST
- *
- * Endpoint que recibe las notificaciones
- * de dLocal.
- */
 export async function POST(request: Request) {
   try {
-    /**
-     * IMPORTANTE:
-     *
-     * El body debe leerse como texto sin modificarlo.
-     * El body forma parte de la firma HMAC.
+    /*
+     * =========================================================
+     * 1. LEER BODY Y HEADERS
+     * =========================================================
      */
-    const rawBody =
-      await request.text();
 
-    /**
-     * ==================================================
-     * VARIABLES DE ENTORNO
-     * ==================================================
-     */
-    const xLogin =
-      process.env.DLOCAL_X_LOGIN?.trim();
+    const rawBody = await request.text();
 
     const secretKey =
       process.env.DLOCAL_SECRET_KEY?.trim();
 
-    /**
-     * ==================================================
-     * HEADERS DE DLOCAL
-     * ==================================================
-     */
-    const xDate =
-      request.headers
-        .get("x-date")
-        ?.trim() || "";
+    const envXLogin =
+      process.env.DLOCAL_X_LOGIN?.trim();
 
-    const authorization =
-      request.headers
-        .get("authorization")
-        ?.trim() || "";
-
-    const signatureHeader =
-      request.headers
-        .get("signature")
-        ?.trim() || "";
-
-    /**
-     * IMPORTANTE:
-     *
-     * dLocal realmente está enviando X-Login
-     * en el POST real.
-     */
     const xLoginHeader =
-      request.headers
-        .get("x-login")
-        ?.trim() || "";
+      request.headers.get("x-login")?.trim() || "";
 
-    const xVersion =
-      request.headers
-        .get("x-version")
-        ?.trim() || "";
+    const xDate =
+      request.headers.get("x-date")?.trim() || "";
 
-    /**
-     * ==================================================
-     * X-LOGIN UTILIZADO PARA LA FIRMA
-     * ==================================================
+    /*
+     * dLocal envía X-Login en el webhook.
      *
-     * Para la firma utilizamos el X-Login enviado
-     * por dLocal cuando está disponible.
-     *
-     * Si por algún motivo no viene, usamos la
-     * variable de entorno.
+     * Para verificar la firma usamos el X-Login recibido
+     * por dLocal, que fue el que confirmó correctamente
+     * nuestra integración.
      */
+
     const signingXLogin =
-      xLoginHeader ||
-      xLogin ||
-      "";
+      xLoginHeader || envXLogin || "";
 
-    /**
-     * ==================================================
-     * FIRMA RECIBIDA
-     * ==================================================
-     */
     const receivedSignature =
       getSignature(request);
 
-    /**
-     * ==================================================
-     * DIAGNÓSTICO SEGURO
-     * ==================================================
-     *
-     * NO mostramos:
-     *
-     * - DLOCAL_SECRET_KEY
-     * - DLOCAL_X_LOGIN completo
-     * - X-Login completo
-     * - Authorization completo
-     * - Signature completa
-     * - Body
+    /*
+     * =========================================================
+     * 2. VALIDAR CONFIGURACIÓN
+     * =========================================================
      */
-    console.log(
-      "========== dLocal WEBHOOK DIAGNÓSTICO =========="
-    );
 
-    console.log(
-      "Webhook dLocal diagnóstico:",
-      {
-        method:
-          request.method,
-
-        url:
-          request.url,
-
-        bodyLength:
-          rawBody.length,
-
-        hasAuthorizationHeader:
-          Boolean(
-            authorization
-          ),
-
-        authorizationLength:
-          authorization.length,
-
-        authorizationPrefix:
-          authorization
-            ? authorization
-                .slice(0, 25)
-                .replace(
-                  /Signature.*$/i,
-                  "Signature: ***"
-                )
-            : "",
-
-        hasSignatureHeader:
-          Boolean(
-            signatureHeader
-          ),
-
-        signatureHeaderLength:
-          signatureHeader.length,
-
-        hasXDate:
-          Boolean(xDate),
-
-        xDateLength:
-          xDate.length,
-
-        xDateValue:
-          xDate || "NO ENVIADO",
-
-        hasXLoginHeader:
-          Boolean(
-            xLoginHeader
-          ),
-
-        xLoginHeaderLength:
-          xLoginHeader.length,
-
-        xVersion:
-          xVersion ||
-          "NO ENVIADO",
-
-        envHasXLogin:
-          Boolean(xLogin),
-
-        envXLoginLength:
-          xLogin?.length || 0,
-
-        envHasSecret:
-          Boolean(secretKey),
-
-        signingXLoginSource:
-          xLoginHeader
-            ? "HEADER"
-            : xLogin
-            ? "ENVIRONMENT"
-            : "NONE",
-
-        receivedSignatureDetected:
-          Boolean(
-            receivedSignature
-          ),
-
-        receivedSignatureLength:
-          receivedSignature.length,
-
-        contentType:
-          request.headers.get(
-            "content-type"
-          ) || "",
-
-        userAgent:
-          request.headers.get(
-            "user-agent"
-          ) || "",
-
-        allHeaders:
-          Array.from(
-            request.headers.keys()
-          ),
-      }
-    );
-
-    console.log(
-      "================================================="
-    );
-
-    /**
-     * ==================================================
-     * VALIDAR CONFIGURACIÓN
-     * ==================================================
-     */
-    if (
-      !xLogin ||
-      !secretKey
-    ) {
+    if (!secretKey) {
       console.error(
-        "Webhook dLocal: faltan variables de entorno."
+        "dLocal webhook: falta DLOCAL_SECRET_KEY."
       );
 
       return NextResponse.json(
@@ -331,14 +139,25 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * VALIDAR X-DATE
-     * ==================================================
-     */
+    if (!signingXLogin) {
+      console.error(
+        "dLocal webhook: falta X-Login."
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Falta X-Login.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
     if (!xDate) {
       console.error(
-        "Webhook dLocal: falta X-Date."
+        "dLocal webhook: falta X-Date."
       );
 
       return NextResponse.json(
@@ -352,20 +171,15 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * VALIDAR SIGNATURE
-     * ==================================================
-     */
     if (!receivedSignature) {
       console.error(
-        "Webhook dLocal: no se pudo extraer la firma."
+        "dLocal webhook: firma no encontrada."
       );
 
       return NextResponse.json(
         {
           error:
-            "Falta Signature/Authorization.",
+            "Falta firma.",
         },
         {
           status: 401,
@@ -373,17 +187,18 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * CALCULAR FIRMA CON X-LOGIN DEL HEADER
-     * ==================================================
+    /*
+     * =========================================================
+     * 3. VERIFICAR FIRMA HMAC-SHA256
      *
      * dLocal:
      *
      * X-Login + X-Date + RequestBody
      *
-     * HMAC-SHA256
+     * HMAC-SHA256 usando Secret Key.
+     * =========================================================
      */
+
     const dataToSign =
       signingXLogin +
       xDate +
@@ -402,161 +217,15 @@ export async function POST(request: Request) {
         .digest("hex")
         .toLowerCase();
 
-    /**
-     * ==================================================
-     * DIAGNÓSTICO COMPARATIVO
-     * ==================================================
-     *
-     * Calculamos además la firma usando
-     * exclusivamente el X-Login de ENVIRONMENT.
-     *
-     * Así podemos determinar si la diferencia
-     * viene del X-Login.
-     */
-    const expectedWithEnvLogin =
-      crypto
-        .createHmac(
-          "sha256",
-          secretKey
-        )
-        .update(
-          (xLogin || "") +
-            xDate +
-            rawBody,
-          "utf8"
-        )
-        .digest("hex")
-        .toLowerCase();
-
-    /**
-     * Firma usando X-Login del HEADER.
-     */
-    const expectedWithHeaderLogin =
-      crypto
-        .createHmac(
-          "sha256",
-          secretKey
-        )
-        .update(
-          (xLoginHeader || "") +
-            xDate +
-            rawBody,
-          "utf8"
-        )
-        .digest("hex")
-        .toLowerCase();
-
-    console.log(
-      "Webhook dLocal comparación de X-Login:",
-      {
-        envLoginPresent:
-          Boolean(xLogin),
-
-        headerLoginPresent:
-          Boolean(xLoginHeader),
-
-        sameXLogin:
-          Boolean(
-            xLogin &&
-              xLoginHeader &&
-              xLogin ===
-                xLoginHeader
-          ),
-
-        envLoginLength:
-          xLogin?.length || 0,
-
-        headerLoginLength:
-          xLoginHeader.length,
-
-        signingXLoginSource:
-          xLoginHeader
-            ? "HEADER"
-            : "ENVIRONMENT",
-
-        receivedPrefix:
-          receivedSignature.slice(
-            0,
-            8
-          ),
-
-        expectedEnvPrefix:
-          expectedWithEnvLogin.slice(
-            0,
-            8
-          ),
-
-        expectedHeaderPrefix:
-          expectedWithHeaderLogin.slice(
-            0,
-            8
-          ),
-
-        matchesEnvLogin:
-          receivedSignature ===
-          expectedWithEnvLogin,
-
-        matchesHeaderLogin:
-          receivedSignature ===
-          expectedWithHeaderLogin,
-      }
-    );
-
-    /**
-     * ==================================================
-     * COMPARACIÓN FINAL
-     * ==================================================
-     */
-    console.log(
-      "Webhook dLocal firma:",
-      {
-        receivedSignatureLength:
-          receivedSignature.length,
-
-        expectedSignatureLength:
-          expectedSignature.length,
-
-        receivedSignaturePrefix:
-          receivedSignature.slice(
-            0,
-            8
-          ),
-
-        expectedSignaturePrefix:
-          expectedSignature.slice(
-            0,
-            8
-          ),
-
-        signaturesMatch:
-          receivedSignature ===
-          expectedSignature,
-
-        receivedIs64Hex:
-          /^[a-fA-F0-9]{64}$/.test(
-            receivedSignature
-          ),
-
-        expectedIs64Hex:
-          /^[a-fA-F0-9]{64}$/.test(
-            expectedSignature
-          ),
-      }
-    );
-
-    /**
-     * ==================================================
-     * VERIFICACIÓN SEGURA
-     * ==================================================
-     */
-    if (
-      !verifySignature(
+    const signatureIsValid =
+      verifySignature(
         receivedSignature,
         expectedSignature
-      )
-    ) {
+      );
+
+    if (!signatureIsValid) {
       console.error(
-        "Webhook dLocal: FIRMA INVÁLIDA."
+        "dLocal webhook: firma inválida."
       );
 
       return NextResponse.json(
@@ -570,24 +239,20 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(
-      "Webhook dLocal: FIRMA VÁLIDA."
-    );
-
-    /**
-     * ==================================================
-     * PARSEAR JSON
-     * ==================================================
+    /*
+     * =========================================================
+     * 4. PARSEAR NOTIFICACIÓN
+     * =========================================================
      */
+
     let notification: any;
 
     try {
       notification =
         JSON.parse(rawBody);
-    } catch (error) {
+    } catch {
       console.error(
-        "Webhook dLocal: JSON inválido.",
-        error
+        "dLocal webhook: JSON inválido."
       );
 
       return NextResponse.json(
@@ -601,21 +266,26 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * DATOS DE LA NOTIFICACIÓN
-     * ==================================================
+    /*
+     * =========================================================
+     * 5. EXTRAER DATOS
+     * =========================================================
      */
+
     const paymentId =
-      notification?.id || "";
+      notification?.id
+        ? String(notification.id)
+        : "";
 
     const orderId =
-      notification?.order_id ||
-      "";
+      notification?.order_id
+        ? String(notification.order_id)
+        : "";
 
     const status =
-      notification?.status ||
-      "";
+      notification?.status
+        ? String(notification.status)
+        : "";
 
     const statusCode =
       notification?.status_code ??
@@ -634,77 +304,21 @@ export async function POST(request: Request) {
       null;
 
     const payer =
-      notification?.payer ||
-      {};
+      notification?.payer || {};
 
     const userReference =
-      payer?.user_reference ||
-      "";
+      payer?.user_reference
+        ? String(payer.user_reference)
+        : "";
 
     const payerEmail =
-      typeof payer?.email ===
-      "string"
+      typeof payer?.email === "string"
         ? payer.email.trim()
         : "";
 
-    /**
-     * ==================================================
-     * LOG SEGURO DE NOTIFICACIÓN
-     * ==================================================
-     */
-    console.log(
-      "Webhook dLocal notificación:",
-      {
-        paymentId:
-          paymentId
-            ? String(paymentId)
-                .slice(0, 20)
-            : "",
-
-        orderId:
-          orderId
-            ? String(orderId)
-                .slice(0, 40)
-            : "",
-
-        status,
-
-        statusCode,
-
-        statusDetail,
-
-        amount,
-
-        currency,
-
-        hasPayer:
-          Boolean(
-            notification?.payer
-          ),
-
-        hasUserReference:
-          Boolean(
-            userReference
-          ),
-
-        hasPayerEmail:
-          Boolean(
-            payerEmail
-          ),
-      }
-    );
-
-    /**
-     * ==================================================
-     * VALIDAR ID Y ORDER_ID
-     * ==================================================
-     */
-    if (
-      !paymentId ||
-      !orderId
-    ) {
+    if (!paymentId || !orderId) {
       console.error(
-        "Webhook dLocal: faltan id u order_id."
+        "dLocal webhook: faltan id u order_id."
       );
 
       return NextResponse.json(
@@ -718,48 +332,85 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * FIREBASE
-     * ==================================================
+    /*
+     * =========================================================
+     * 6. FIREBASE
+     * =========================================================
      */
-    const db =
-      getAdminDb();
 
-    /**
-     * Guardamos la notificación únicamente
-     * después de verificar correctamente
-     * la firma.
-     */
-    await db
-      .ref(
+    const db = getAdminDb();
+
+    const paymentRef =
+      db.ref(
         `dlocal_payments/${paymentId}`
-      )
-      .set({
-        ...notification,
+      );
 
-        received_at:
-          new Date().toISOString(),
-
-        signature_verified:
-          true,
-      });
-
-    console.log(
-      "Webhook dLocal: pago guardado en Firebase.",
-      paymentId
-    );
-
-    /**
-     * ==================================================
-     * ESTADO DEL PAGO
-     * ==================================================
+    /*
+     * =========================================================
+     * 7. IDEMPOTENCIA
+     *
+     * dLocal puede enviar la misma notificación más de una vez.
+     *
+     * Si este pago YA activó Premium, respondemos 200 y
+     * no volvemos a procesarlo.
+     * =========================================================
      */
+
+    const existingSnapshot =
+      await paymentRef.once("value");
+
+    const existingPayment =
+      existingSnapshot.exists()
+        ? existingSnapshot.val()
+        : null;
+
     if (
-      status !== "PAID"
+      existingPayment?.premium_activated === true
     ) {
       console.log(
-        "Webhook dLocal: pago recibido con estado:",
+        "dLocal webhook: pago ya procesado."
+      );
+
+      return NextResponse.json(
+        {
+          received: true,
+          duplicate: true,
+          premiumActivated: true,
+        },
+        {
+          status: 200,
+        }
+      );
+    }
+
+    /*
+     * =========================================================
+     * 8. GUARDAR NOTIFICACIÓN
+     * =========================================================
+     */
+
+    await paymentRef.update({
+      ...notification,
+
+      received_at:
+        new Date().toISOString(),
+
+      signature_verified:
+        true,
+
+      signature_verified_at:
+        new Date().toISOString(),
+    });
+
+    /*
+     * =========================================================
+     * 9. SI NO ESTÁ PAID
+     * =========================================================
+     */
+
+    if (status !== "PAID") {
+      console.log(
+        "dLocal webhook: estado recibido:",
         status
       );
 
@@ -778,24 +429,21 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * IDENTIFICAR USUARIO
-     * ==================================================
+    /*
+     * =========================================================
+     * 10. IDENTIFICAR USUARIO
+     *
+     * Primero intentamos Firebase UID mediante
+     * payer.user_reference.
+     *
+     * Como alternativa usamos payer.email.
+     * =========================================================
      */
+
     let userEmail =
       payerEmail;
 
-    /**
-     * Intentamos primero con
-     * payer.user_reference.
-     *
-     * En MiOficio debería contener
-     * el UID de Firebase.
-     */
-    if (
-      userReference
-    ) {
+    if (userReference) {
       try {
         const auth =
           getAdminAuth();
@@ -805,33 +453,43 @@ export async function POST(request: Request) {
             userReference
           );
 
-        if (
-          firebaseUser.email
-        ) {
+        if (firebaseUser.email) {
           userEmail =
             firebaseUser.email.trim();
         }
-
-        console.log(
-          "Webhook dLocal: usuario Firebase identificado."
-        );
-      } catch (error) {
+      } catch {
         console.error(
-          "Webhook dLocal: no se pudo obtener el usuario Firebase.",
-          error
+          "dLocal webhook: no se pudo identificar Firebase UID."
         );
       }
     }
 
-    /**
-     * Si no podemos identificar al usuario,
-     * no activamos Premium.
+    /*
+     * =========================================================
+     * 11. SI NO PODEMOS IDENTIFICAR USUARIO
+     * =========================================================
      */
+
     if (!userEmail) {
       console.error(
-        "Webhook dLocal: no se pudo identificar al usuario."
+        "dLocal webhook: usuario no identificado."
       );
 
+      await paymentRef.update({
+        premium_activated:
+          false,
+
+        processing_error:
+          "Usuario no identificado.",
+
+        processed_at:
+          new Date().toISOString(),
+      });
+
+      /*
+       * Respondemos 200 porque la notificación fue recibida
+       * correctamente y la firma fue válida.
+       */
       return NextResponse.json(
         {
           received: true,
@@ -848,45 +506,31 @@ export async function POST(request: Request) {
       );
     }
 
-    /**
-     * ==================================================
-     * FIREBASE USER KEY
-     * ==================================================
+    /*
+     * =========================================================
+     * 12. ACTIVAR PREMIUM EN PERFIL
+     * =========================================================
      */
+
     const emailKey =
-      safeEmailKey(
-        userEmail
-      );
+      safeEmailKey(userEmail);
 
-    console.log(
-      "Webhook dLocal: emailKey generado."
-    );
-
-    /**
-     * ==================================================
-     * PERFIL
-     * ==================================================
-     */
     const perfilRef =
       db.ref(
         `usuarios_data/${emailKey}/perfil`
       );
 
     const perfilSnapshot =
-      await perfilRef.once(
-        "value"
-      );
+      await perfilRef.once("value");
 
     const perfilActual =
       perfilSnapshot.exists()
         ? perfilSnapshot.val()
         : {};
 
-    /**
-     * ==================================================
-     * ACTIVAR PREMIUM
-     * ==================================================
-     */
+    const premiumActivatedAt =
+      new Date().toISOString();
+
     await perfilRef.set({
       ...perfilActual,
 
@@ -894,7 +538,7 @@ export async function POST(request: Request) {
         true,
 
       premium_activado_at:
-        new Date().toISOString(),
+        premiumActivatedAt,
 
       premium_payment_id:
         paymentId,
@@ -912,18 +556,48 @@ export async function POST(request: Request) {
         "dlocal",
     });
 
+    /*
+     * =========================================================
+     * 13. MARCAR PAGO COMO PROCESADO
+     * =========================================================
+     */
+
+    await paymentRef.update({
+      premium_activated:
+        true,
+
+      premium_activated_at:
+        premiumActivatedAt,
+
+      premium_user_email:
+        userEmail,
+
+      premium_user_reference:
+        userReference || null,
+
+      processed_at:
+        new Date().toISOString(),
+
+      processing_status:
+        "COMPLETED",
+
+      status_code:
+        statusCode,
+
+      status_detail:
+        statusDetail,
+    });
+
+    /*
+     * =========================================================
+     * 14. RESPUESTA FINAL
+     * =========================================================
+     */
+
     console.log(
-      "Webhook dLocal: PREMIUM ACTIVADO."
+      "dLocal webhook: PREMIUM ACTIVADO."
     );
 
-    /**
-     * ==================================================
-     * RESPUESTA A DLOCAL
-     * ==================================================
-     *
-     * HTTP 200 = notificación recibida
-     * correctamente.
-     */
     return NextResponse.json(
       {
         received: true,
@@ -937,8 +611,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error(
-      "Webhook dLocal: ERROR INTERNO.",
-      error
+      "dLocal webhook: error interno."
     );
 
     return NextResponse.json(
@@ -953,15 +626,12 @@ export async function POST(request: Request) {
   }
 }
 
-/**
- * GET
- *
- * Sirve solamente para comprobar que
- * el endpoint está publicado.
- *
- * Las notificaciones de dLocal llegan
- * mediante POST.
+/*
+ * =========================================================
+ * GET — COMPROBAR QUE EL WEBHOOK ESTÁ ACTIVO
+ * =========================================================
  */
+
 export async function GET() {
   return NextResponse.json({
     ok: true,
