@@ -807,7 +807,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
       const firebaseToken = await auth.currentUser.getIdToken();
 
       const response = await fetch(
-        '/api/mercadopago/subscription',
+        '/api/dlocal/create',
         {
           method: 'POST',
           headers: {
@@ -846,10 +846,16 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
       );
 
       if (!response.ok || !data.checkoutUrl) {
-        console.error(
-          'Error al crear suscripción Premium:',
-          data
-        );
+       console.error(
+  "Error al crear suscripción Premium:",
+  JSON.stringify(data, null, 2)
+);
+
+alert(
+  data?.error ||
+  data?.message ||
+  "dLocal rechazó la creación del pago. Revisá la terminal de VS Code."
+);
 
         const detalle =
           data?.details?.message ||
