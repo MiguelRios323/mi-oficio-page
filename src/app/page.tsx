@@ -953,24 +953,17 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     plantilla_estilo: 'Profesional'
   });
 
- useEffect(() => {
+useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const regresoDlocal = params.get('dlocal') === 'return';
 
   if (!regresoDlocal) return;
 
-  // Esperamos a que Firebase confirme Premium.
-  // No limpiamos la URL todavía porque el perfil puede
-  // estar cargando y comenzar inicialmente en false.
-  if (!perfilForm.es_premium) return;
-
-  // Firebase confirmó que Premium está activo.
-  setMostrarBienvenidaPremium(true);
-
-  // Ahora sí limpiamos la URL sin recargar la aplicación.
-  window.history.replaceState({}, '', window.location.pathname);
+  if (perfilForm.es_premium === true) {
+    setMostrarBienvenidaPremium(true);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
 }, [perfilForm.es_premium]);
-
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
   const [busquedaCliente, setBusquedaCliente] = useState<string>('');
