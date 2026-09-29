@@ -953,20 +953,23 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     plantilla_estilo: 'Profesional'
   });
 
-    useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-   const regresoDlocal = params.get('dlocal') === 'return';
+ useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const regresoDlocal = params.get('dlocal') === 'return';
 
-if (!regresoDlocal) return;
-    // Limpiamos la URL sin recargar la aplicación.
-    window.history.replaceState({}, '', window.location.pathname);
+  if (!regresoDlocal) return;
 
-    // El webhook es la fuente definitiva del estado Premium.
-    // Esperamos a que Firebase cargue el perfil antes de mostrar la bienvenida.
-    if (perfilForm.es_premium) {
-      setMostrarBienvenidaPremium(true);
-    }
-  }, [perfilForm.es_premium]);
+  // Esperamos a que Firebase confirme Premium.
+  // No limpiamos la URL todavía porque el perfil puede
+  // estar cargando y comenzar inicialmente en false.
+  if (!perfilForm.es_premium) return;
+
+  // Firebase confirmó que Premium está activo.
+  setMostrarBienvenidaPremium(true);
+
+  // Ahora sí limpiamos la URL sin recargar la aplicación.
+  window.history.replaceState({}, '', window.location.pathname);
+}, [perfilForm.es_premium]);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
