@@ -798,6 +798,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   const [nombreTarjeta, setNombreTarjeta] = useState('');
   const [errorTarjeta, setErrorTarjeta] = useState('');
   const [procesandoPago, setProcesandoPago] = useState(false);
+  const [mostrarBienvenidaPremium, setMostrarBienvenidaPremium] = useState(false);
 
 
   const mostrarNotificacion = (mensaje: string, tipo: 'success' | 'error' = 'success') => {
@@ -951,6 +952,22 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     notificar_vencimientos: true,
     plantilla_estilo: 'Profesional'
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const regresoDlocal = params.get('dlocal') === 'return';
+
+    if (!regresoDlocal) return;
+
+    // Limpiamos la URL sin recargar la aplicación.
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // El webhook es la fuente definitiva del estado Premium.
+    // Esperamos a que Firebase cargue el perfil antes de mostrar la bienvenida.
+    if (perfilForm.es_premium) {
+      setMostrarBienvenidaPremium(true);
+    }
+  }, [perfilForm.es_premium]);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
@@ -3178,6 +3195,45 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-2xl text-xs font-bold shadow-lg shadow-red-600/30 transition cursor-pointer"
               >
                 Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarBienvenidaPremium && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-2xl">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-8 text-center text-white">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-2xl shadow-lg">
+                ✓
+              </div>
+              <p className="mt-5 text-[10px] font-black uppercase tracking-[0.22em] text-blue-100">MiOficio Pro</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight">¡Bienvenido a MiOficio Premium!</h2>
+              <p className="mx-auto mt-3 max-w-sm text-xs leading-5 text-blue-50/90">
+                Tu pago fue aprobado y tu cuenta ya tiene activadas las herramientas Premium.
+              </p>
+            </div>
+
+            <div className="p-6">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                    ✓
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-emerald-900">Premium activado correctamente</p>
+                    <p className="mt-0.5 text-[10px] leading-4 text-emerald-700">Ya podés utilizar las funciones Premium de MiOficio.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarBienvenidaPremium(false)}
+                className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 text-xs font-bold text-white transition hover:bg-slate-800"
+              >
+                Comenzar a usar MiOficio Premium →
               </button>
             </div>
           </div>
