@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     const callbackUrl =
-      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+  `${APP_URL.replace(/\/+$/, "")}/api/dlocal/callback`;
 
     const callbackError =
       validateHttpsUrl(
@@ -712,6 +712,6 @@ export async function GET() {
       NOTIFICATION_URL,
 
     callbackUrl:
-      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`,
+  `${APP_URL.replace(/\/+$/, "")}/api/dlocal/callback`,
   });
 }
