@@ -12,19 +12,18 @@ export const dynamic = "force-dynamic";
 function safeEmailKey(email: string): string {
   return email
     .toLowerCase()
-    .replace(/[.#$[\]\\/]/g, "_")
+    .replace(/[.#$[\]/\\]/g, "_")
     .slice(0, 100);
 }
 
 function getSignature(request: Request): string {
-  const authorization =
-    request.headers.get("authorization");
+  const authorization = request.headers.get("authorization");
 
   if (authorization) {
     const value = authorization.trim();
 
     const match = value.match(
-      /Signature\s*:\s*([a-fA-F0-9]{64})/i
+      /Signature:\s*([a-fA-F0-9]{64})/i
     );
 
     if (match) {
@@ -36,14 +35,13 @@ function getSignature(request: Request): string {
     }
   }
 
-  const signatureHeader =
-    request.headers.get("signature");
+  const signatureHeader = request.headers.get("signature");
 
   if (signatureHeader) {
     const value = signatureHeader.trim();
 
     const match = value.match(
-      /Signature\s*:\s*([a-fA-F0-9]{64})/i
+      /Signature:\s*([a-fA-F0-9]{64})/i
     );
 
     if (match) {
@@ -62,11 +60,15 @@ function verifySignature(
   received: string,
   expected: string
 ): boolean {
-  const receivedBuffer =
-    Buffer.from(received, "utf8");
+  const receivedBuffer = Buffer.from(
+    received,
+    "utf8"
+  );
 
-  const expectedBuffer =
-    Buffer.from(expected, "utf8");
+  const expectedBuffer = Buffer.from(
+    expected,
+    "utf8"
+  );
 
   if (
     receivedBuffer.length !==
@@ -83,11 +85,9 @@ function verifySignature(
 
 export async function POST(request: Request) {
   try {
-    /*
-     * =========================================================
-     * 1. LEER BODY Y HEADERS
-     * =========================================================
-     */
+    // =========================================================
+    // 1. LEER BODY Y HEADERS
+    // =========================================================
 
     const rawBody = await request.text();
 
@@ -103,25 +103,15 @@ export async function POST(request: Request) {
     const xDate =
       request.headers.get("x-date")?.trim() || "";
 
-    /*
-     * dLocal envía X-Login en el webhook.
-     *
-     * Para verificar la firma usamos el X-Login recibido
-     * por dLocal, que fue el que confirmó correctamente
-     * nuestra integración.
-     */
-
     const signingXLogin =
       xLoginHeader || envXLogin || "";
 
     const receivedSignature =
       getSignature(request);
 
-    /*
-     * =========================================================
-     * 2. VALIDAR CONFIGURACIÓN
-     * =========================================================
-     */
+    // =========================================================
+    // 2. VALIDAR CONFIGURACIÓN
+    // =========================================================
 
     if (!secretKey) {
       console.error(
@@ -146,8 +136,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:
-            "Falta X-Login.",
+          error: "Falta X-Login.",
         },
         {
           status: 401,
@@ -162,8 +151,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:
-            "Falta X-Date.",
+          error: "Falta X-Date.",
         },
         {
           status: 401,
@@ -178,8 +166,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:
-            "Falta firma.",
+          error: "Falta firma.",
         },
         {
           status: 401,
@@ -187,17 +174,11 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 3. VERIFICAR FIRMA HMAC-SHA256
-     *
-     * dLocal:
-     *
-     * X-Login + X-Date + RequestBody
-     *
-     * HMAC-SHA256 usando Secret Key.
-     * =========================================================
-     */
+    // =========================================================
+    // 3. VERIFICAR FIRMA HMAC-SHA256
+    //
+    // X-Login + X-Date + RequestBody
+    // =========================================================
 
     const dataToSign =
       signingXLogin +
@@ -230,8 +211,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:
-            "Firma inválida.",
+          error: "Firma inválida.",
         },
         {
           status: 401,
@@ -239,11 +219,9 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 4. PARSEAR NOTIFICACIÓN
-     * =========================================================
-     */
+    // =========================================================
+    // 4. PARSEAR NOTIFICACIÓN
+    // =========================================================
 
     let notification: any;
 
@@ -257,8 +235,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error:
-            "JSON inválido.",
+          error: "JSON inválido.",
         },
         {
           status: 400,
@@ -266,11 +243,9 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 5. EXTRAER DATOS
-     * =========================================================
-     */
+    // =========================================================
+    // 5. EXTRAER DATOS
+    // =========================================================
 
     const paymentId =
       notification?.id
@@ -284,24 +259,20 @@ export async function POST(request: Request) {
 
     const status =
       notification?.status
-        ? String(notification.status)
+        ? String(notification.status).toUpperCase()
         : "";
 
     const statusCode =
-      notification?.status_code ??
-      null;
+      notification?.status_code ?? null;
 
     const statusDetail =
-      notification?.status_detail ??
-      null;
+      notification?.status_detail ?? null;
 
     const amount =
-      notification?.amount ??
-      null;
+      notification?.amount ?? null;
 
     const currency =
-      notification?.currency ??
-      null;
+      notification?.currency ?? null;
 
     const payer =
       notification?.payer || {};
@@ -315,6 +286,24 @@ export async function POST(request: Request) {
       typeof payer?.email === "string"
         ? payer.email.trim()
         : "";
+
+    const card =
+      notification?.card || {};
+
+    const cardId =
+      card?.card_id ??
+      notification?.card_id ??
+      null;
+
+    const networkTxReference =
+      card?.network_tx_reference ??
+      notification?.network_tx_reference ??
+      null;
+
+    const transactionLinkId =
+      card?.transaction_link_id ??
+      notification?.transaction_link_id ??
+      null;
 
     if (!paymentId || !orderId) {
       console.error(
@@ -332,29 +321,19 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 6. FIREBASE
-     * =========================================================
-     */
+    // =========================================================
+    // 6. FIREBASE
+    // =========================================================
 
     const db = getAdminDb();
 
-    const paymentRef =
-      db.ref(
-        `dlocal_payments/${paymentId}`
-      );
+    const paymentRef = db.ref(
+      `dlocal_payments/${paymentId}`
+    );
 
-    /*
-     * =========================================================
-     * 7. IDEMPOTENCIA
-     *
-     * dLocal puede enviar la misma notificación más de una vez.
-     *
-     * Si este pago YA activó Premium, respondemos 200 y
-     * no volvemos a procesarlo.
-     * =========================================================
-     */
+    // =========================================================
+    // 7. IDEMPOTENCIA
+    // =========================================================
 
     const existingSnapshot =
       await paymentRef.once("value");
@@ -383,11 +362,9 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 8. GUARDAR NOTIFICACIÓN
-     * =========================================================
-     */
+    // =========================================================
+    // 8. GUARDAR NOTIFICACIÓN
+    // =========================================================
 
     await paymentRef.update({
       ...notification,
@@ -395,18 +372,23 @@ export async function POST(request: Request) {
       received_at:
         new Date().toISOString(),
 
-      signature_verified:
-        true,
+      signature_verified: true,
 
       signature_verified_at:
         new Date().toISOString(),
+
+      card_id: cardId,
+
+      network_tx_reference:
+        networkTxReference,
+
+      transaction_link_id:
+        transactionLinkId,
     });
 
-    /*
-     * =========================================================
-     * 9. SI NO ESTÁ PAID
-     * =========================================================
-     */
+    // =========================================================
+    // 9. SI NO ESTÁ PAID
+    // =========================================================
 
     if (status !== "PAID") {
       console.log(
@@ -417,10 +399,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           received: true,
-
-          premiumActivated:
-            false,
-
+          premiumActivated: false,
           status,
         },
         {
@@ -429,24 +408,15 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 10. IDENTIFICAR USUARIO
-     *
-     * Primero intentamos Firebase UID mediante
-     * payer.user_reference.
-     *
-     * Como alternativa usamos payer.email.
-     * =========================================================
-     */
+    // =========================================================
+    // 10. IDENTIFICAR USUARIO
+    // =========================================================
 
-    let userEmail =
-      payerEmail;
+    let userEmail = payerEmail;
 
     if (userReference) {
       try {
-        const auth =
-          getAdminAuth();
+        const auth = getAdminAuth();
 
         const firebaseUser =
           await auth.getUser(
@@ -464,11 +434,9 @@ export async function POST(request: Request) {
       }
     }
 
-    /*
-     * =========================================================
-     * 11. SI NO PODEMOS IDENTIFICAR USUARIO
-     * =========================================================
-     */
+    // =========================================================
+    // 11. SI NO PODEMOS IDENTIFICAR USUARIO
+    // =========================================================
 
     if (!userEmail) {
       console.error(
@@ -476,8 +444,7 @@ export async function POST(request: Request) {
       );
 
       await paymentRef.update({
-        premium_activated:
-          false,
+        premium_activated: false,
 
         processing_error:
           "Usuario no identificado.",
@@ -486,17 +453,10 @@ export async function POST(request: Request) {
           new Date().toISOString(),
       });
 
-      /*
-       * Respondemos 200 porque la notificación fue recibida
-       * correctamente y la firma fue válida.
-       */
       return NextResponse.json(
         {
           received: true,
-
-          premiumActivated:
-            false,
-
+          premiumActivated: false,
           reason:
             "Usuario no identificado.",
         },
@@ -506,19 +466,16 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-     * =========================================================
-     * 12. ACTIVAR PREMIUM EN PERFIL
-     * =========================================================
-     */
+    // =========================================================
+    // 12. ACTIVAR PREMIUM EN PERFIL
+    // =========================================================
 
     const emailKey =
       safeEmailKey(userEmail);
 
-    const perfilRef =
-      db.ref(
-        `usuarios_data/${emailKey}/perfil`
-      );
+    const perfilRef = db.ref(
+      `usuarios_data/${emailKey}/perfil`
+    );
 
     const perfilSnapshot =
       await perfilRef.once("value");
@@ -534,8 +491,7 @@ export async function POST(request: Request) {
     await perfilRef.set({
       ...perfilActual,
 
-      es_premium:
-        true,
+      es_premium: true,
 
       premium_activado_at:
         premiumActivatedAt,
@@ -554,17 +510,23 @@ export async function POST(request: Request) {
 
       premium_provider:
         "dlocal",
+
+      dlocal_card_id:
+        cardId,
+
+      dlocal_network_tx_reference:
+        networkTxReference,
+
+      dlocal_transaction_link_id:
+        transactionLinkId,
     });
 
-    /*
-     * =========================================================
-     * 13. MARCAR PAGO COMO PROCESADO
-     * =========================================================
-     */
+    // =========================================================
+    // 13. MARCAR PAGO COMO PROCESADO
+    // =========================================================
 
     await paymentRef.update({
-      premium_activated:
-        true,
+      premium_activated: true,
 
       premium_activated_at:
         premiumActivatedAt,
@@ -586,24 +548,36 @@ export async function POST(request: Request) {
 
       status_detail:
         statusDetail,
+
+      card_id:
+        cardId,
+
+      network_tx_reference:
+        networkTxReference,
+
+      transaction_link_id:
+        transactionLinkId,
     });
 
-    /*
-     * =========================================================
-     * 14. RESPUESTA FINAL
-     * =========================================================
-     */
+    // =========================================================
+    // 14. RESPUESTA FINAL
+    // =========================================================
 
     console.log(
-      "dLocal webhook: PREMIUM ACTIVADO."
+      "dLocal webhook: PREMIUM ACTIVADO.",
+      {
+        orderId,
+        paymentId,
+        hasCardId: Boolean(cardId),
+        hasNetworkTxReference:
+          Boolean(networkTxReference),
+      }
     );
 
     return NextResponse.json(
       {
         received: true,
-
-        premiumActivated:
-          true,
+        premiumActivated: true,
       },
       {
         status: 200,
@@ -611,7 +585,8 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error(
-      "dLocal webhook: error interno."
+      "dLocal webhook: error interno.",
+      error
     );
 
     return NextResponse.json(
@@ -626,11 +601,9 @@ export async function POST(request: Request) {
   }
 }
 
-/*
- * =========================================================
- * GET — COMPROBAR QUE EL WEBHOOK ESTÁ ACTIVO
- * =========================================================
- */
+// =========================================================
+// GET — COMPROBAR QUE EL WEBHOOK ESTÁ ACTIVO
+// =========================================================
 
 export async function GET() {
   return NextResponse.json({
@@ -642,8 +615,7 @@ export async function GET() {
     endpoint:
       "/api/dlocal/webhook",
 
-    method:
-      "POST",
+    method: "POST",
 
     message:
       "Webhook activo. Las notificaciones de dLocal llegan mediante POST.",

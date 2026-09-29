@@ -753,7 +753,7 @@ function AuthScreen({
 
           <div className="my-6 flex items-center gap-3"><div className="h-px flex-1 bg-white/[0.07]" /><span className="text-[9px] font-black uppercase tracking-widest text-slate-600">o continúa con email</span><div className="h-px flex-1 bg-white/[0.07]" /></div>
 
-          <form onSubmit={handleEmailAuth} className="space-y-4">
+          <form onSubmit={handleEmailAuth} className="space-y-3">
             <div>
               <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-slate-500">Correo electrónico</label>
               <input type="email" required value={emailInput} onChange={e => setEmailInput(e.target.value)} placeholder="nombre@empresa.com" className="w-full rounded-xl border border-white/10 bg-[#070b16] px-3.5 py-3.5 text-xs font-semibold text-white outline-none transition placeholder:text-slate-700 focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10" />
@@ -854,16 +854,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
       return;
     }
 
-    const documentoTitular = (perfilForm.cuit_cuil || '').trim();
-    const documentoNumerico = documentoTitular.replace(/\D/g, '');
-
-    if (!documentoTitular || documentoNumerico.length < 7 || documentoNumerico.length > 11) {
-      setErrorTarjeta(
-        'Antes de activar Premium, completá tu CUIT / DNI en Perfil y guardá los datos.'
-      );
-      return;
-    }
-
     if (!nombreTarjeta.trim()) {
       setErrorTarjeta(
         'Ingresá el nombre que figura en la tarjeta.'
@@ -897,7 +887,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
         },
         body: JSON.stringify({
           token: result.token,
-          cuit_cuil: documentoTitular,
         }),
       });
 
@@ -2183,7 +2172,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
 
         <div className="w-full max-w-[1180px] mx-auto px-4 py-4 sm:px-5 lg:px-6 min-w-0">
           {activeTab === 'dashboard' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Dashboard header */}
               <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
@@ -2333,7 +2322,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
             </div>
           )}
           {activeTab === 'presupuestos' && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
                 <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
@@ -2653,14 +2642,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                   </div>
                 </section>
 
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
-                  >
-                    Guardar datos 🚀
-                  </button>
-                </div>
+
 
               </form>
 
@@ -2857,7 +2839,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
             
             <form onSubmit={handleActualizarPresupuesto} className="space-y-4 overflow-y-auto pr-1 flex-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-3">
                     <h4 className="font-bold text-blue-600 uppercase text-[10px]">1. Datos del Cliente</h4>
                     <div className="space-y-2.5">
@@ -2879,7 +2861,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="bg-blue-50/80 p-3 rounded-2xl border border-blue-200 space-y-3 h-full flex flex-col justify-between">
                     <div>
                       <h4 className="font-bold text-blue-950 uppercase text-[10px] mb-2">2. Parámetros Técnicos ({rubroActual})</h4>
@@ -3289,20 +3271,20 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
 
       {showModalPremium && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3 sm:p-4"
           onClick={() => {
             if (!procesandoPago) setShowModalPremium(false);
           }}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            className="max-h-[calc(100vh-24px)] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:max-h-[calc(100vh-32px)] sm:p-5"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-5 flex items-start justify-between">
+            <div className="mb-3 flex items-start justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">MiOficio Pro</p>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">Activar Premium</h2>
-                <p className="mt-1 text-sm text-slate-500">Accedé a todas las herramientas Premium.</p>
+                <h2 className="mt-0.5 text-lg font-bold text-slate-900">Activar Premium</h2>
+                <p className="mt-0.5 text-xs text-slate-500">Accedé a todas las herramientas Premium.</p>
               </div>
               <button
                 type="button"
@@ -3316,16 +3298,16 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
               </button>
             </div>
 
-            <div className="mb-5 rounded-xl bg-slate-50 p-4">
+            <div className="mb-3 rounded-xl bg-slate-50 p-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-slate-600">MiOficio Premium</span>
-                <span className="text-lg font-bold text-slate-900">$ 4.999 ARS</span>
+                <span className="text-base font-bold text-slate-900">$ 4.999 ARS</span>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label htmlFor="nombre-tarjeta" className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label htmlFor="nombre-tarjeta" className="mb-1 block text-xs font-medium text-slate-700">
                   Nombre del titular
                 </label>
                 <input
@@ -3335,17 +3317,17 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                   onChange={(event) => setNombreTarjeta(event.target.value)}
                   placeholder="Nombre que figura en la tarjeta"
                   disabled={procesandoPago}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:bg-slate-50"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:bg-slate-50"
                 />
               </div>
 
               <div>
-                <label htmlFor="dlocal-card-field" className="mb-1.5 block text-sm font-medium text-slate-700">
+                <label htmlFor="dlocal-card-field" className="mb-1 block text-xs font-medium text-slate-700">
                   Tarjeta
                 </label>
                 <div
                   id="dlocal-card-field"
-                  className="min-h-[46px] rounded-xl border border-slate-200 bg-white px-3 py-3"
+                  className="min-h-[42px] rounded-lg border border-slate-200 bg-white px-3 py-2"
                 />
               </div>
 
@@ -3355,11 +3337,11 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                 </div>
               )}
 
-              <div className="rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
+              <div className="rounded-lg bg-slate-50 p-2.5 text-[11px] leading-4 text-slate-500">
                 Tus datos de tarjeta se ingresan directamente en los campos seguros de dLocal. MiOficio no almacena el número de tarjeta ni el código de seguridad.
               </div>
 
-              <p className="text-xs leading-5 text-slate-400">
+              <p className="text-[11px] leading-4 text-slate-400">
                 Al continuar, aceptás que dLocal procese los datos necesarios para realizar el pago.
               </p>
 
@@ -3367,7 +3349,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                 type="button"
                 onClick={pagarPremiumConTarjeta}
                 disabled={procesandoPago || !dlocalReady || !nombreTarjeta.trim()}
-                className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {procesandoPago
                   ? 'Procesando pago…'

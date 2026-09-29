@@ -1,6 +1,5 @@
 ﻿'use client';
 import { useState, useEffect, FormEvent, useRef, Fragment } from 'react';
-import Script from 'next/script';
 import { jsPDF } from 'jspdf';
 import { initializeApp, getApps } from 'firebase/app';
 import { 
@@ -16,12 +15,6 @@ import {
   User as FirebaseUser 
 } from 'firebase/auth';
 import { getDatabase, ref, onValue, set } from 'firebase/database';
-
-declare global {
-  interface Window {
-    dlocal?: any;
-  }
-}
 
 const firebaseConfig = {
   apiKey: "AIzaSyDW3FkTaaLWTkJTZo6gPBPKpu3dwoRRDxE",
@@ -362,8 +355,6 @@ function SelectorEstadoPresupuesto({ estado, onChange }: { estado: string; onCha
           ))}
         </div>
       )}
-
-
     </div>
   );
 }
@@ -777,7 +768,6 @@ function AuthScreen({
         </div>
       </div>
     </main>
-
   );
 }
 
@@ -795,16 +785,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   const [notificacion, setNotificacion] = useState<{ mensaje: string; tipo: 'success' | 'error' } | null>(null);
   const [cargandoPremium, setCargandoPremium] = useState(false);
 
-  const [showModalPremium, setShowModalPremium] = useState<boolean>(false);
-  const [nombreTarjeta, setNombreTarjeta] = useState('');
-  const [dlocalScriptReady, setDlocalScriptReady] = useState(false);
-  const [dlocalReady, setDlocalReady] = useState(false);
-  const [errorTarjeta, setErrorTarjeta] = useState('');
-  const [procesandoPago, setProcesandoPago] = useState(false);
-
-  const dlocalCardRef = useRef<any>(null);
-  const dlocalInstanceRef = useRef<any>(null);
-
   const mostrarNotificacion = (mensaje: string, tipo: 'success' | 'error' = 'success') => {
     setNotificacion({ mensaje, tipo });
     setTimeout(() => {
@@ -812,7 +792,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     }, 3500);
   };
 
-  const activarPremium = () => {
+  const activarPremium = async () => {
     if (!auth.currentUser) {
       mostrarNotificacion(
         'Iniciá sesión nuevamente para continuar.',
@@ -821,200 +801,92 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
       return;
     }
 
-    console.log("PREMIUM ACTUAL:", perfilForm.es_premium);
-  console.log("PERFIL ACTUAL:", perfilForm);
-
-  if (perfilForm.es_premium) {
-      mostrarNotificacion(
-        'Tu cuenta ya tiene MiOficio Premium activo.',
-        'success'
-      );
-      return;
-    }
-
-    setNombreTarjeta('');
-    setErrorTarjeta('');
-    setDlocalReady(false);
-    setShowModalPremium(true);
-  };
-
-  const pagarPremiumConTarjeta = async () => {
-    if (!auth.currentUser) {
-      mostrarNotificacion(
-        'Iniciá sesión nuevamente para continuar.',
-        'error'
-      );
-      return;
-    }
-
-    if (!dlocalInstanceRef.current || !dlocalCardRef.current) {
-      setErrorTarjeta(
-        'El formulario de tarjeta todavía no está listo.'
-      );
-      return;
-    }
-
-    const documentoTitular = (perfilForm.cuit_cuil || '').trim();
-    const documentoNumerico = documentoTitular.replace(/\D/g, '');
-
-    if (!documentoTitular || documentoNumerico.length < 7 || documentoNumerico.length > 11) {
-      setErrorTarjeta(
-        'Antes de activar Premium, completá tu CUIT / DNI en Perfil y guardá los datos.'
-      );
-      return;
-    }
-
-    if (!nombreTarjeta.trim()) {
-      setErrorTarjeta(
-        'Ingresá el nombre que figura en la tarjeta.'
-      );
-      return;
-    }
-
-    setProcesandoPago(true);
-    setErrorTarjeta('');
+    setCargandoPremium(true);
 
     try {
-      const result = await dlocalInstanceRef.current.createToken(
-        dlocalCardRef.current,
-        { name: nombreTarjeta.trim() }
-      );
-
-      if (!result?.token) {
-        throw new Error(
-          result?.error?.message ||
-          'dLocal no pudo tokenizar la tarjeta.'
-        );
-      }
-
       const firebaseToken = await auth.currentUser.getIdToken();
 
-      const response = await fetch('/api/dlocal/create', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${firebaseToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token: result.token,
-          cuit_cuil: documentoTitular,
-        }),
-      });
+      const response = await fetch(
+        '/api/dlocal/create',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${firebaseToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const responseText = await response.text();
+
       let data: any = {};
 
       try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch {
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch (parseError) {
+        console.error(
+          'Respuesta no JSON del servidor:',
+          responseText
+        );
+
         throw new Error(
           `El servidor devolvió una respuesta inesperada (${response.status}).`
         );
       }
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
+      console.log(
+        'Respuesta API Mercado Pago:',
+        {
+          status: response.status,
+          ok: response.ok,
+          data,
+        }
+      );
+
+      if (!response.ok || !data.checkoutUrl) {
+       console.error(
+  "Error al crear suscripción Premium:",
+  JSON.stringify(data, null, 2)
+);
+
+alert(
+  data?.error ||
+  data?.message ||
+  "dLocal rechazó la creación del pago. Revisá la terminal de VS Code."
+);
+
+        const detalle =
+          data?.details?.message ||
+          data?.details?.error ||
+          data?.details?.cause?.[0]?.description ||
           data?.message ||
-          'No se pudo procesar el pago.'
-        );
+          data?.step ||
+          data?.error ||
+          `No se pudo iniciar la suscripción (${response.status}).`;
+
+        throw new Error(detalle);
       }
 
-      setShowModalPremium(false);
-      setNombreTarjeta('');
-      setErrorTarjeta('');
+      window.location.href = data.checkoutUrl;
+
+    } catch (error) {
+      console.error(
+        'Error activando Premium:',
+        error
+      );
 
       mostrarNotificacion(
-        'Pago enviado correctamente. Estamos confirmando tu Premium.',
-        'success'
-      );
-    } catch (error) {
-      console.error('Error en el pago Premium:', error);
-      setErrorTarjeta(
         error instanceof Error
           ? error.message
-          : 'No se pudo procesar el pago.'
+          : 'No se pudo iniciar la suscripción Premium.',
+        'error'
       );
-    } finally {
-      setProcesandoPago(false);
+
+      setCargandoPremium(false);
     }
   };
-
-  useEffect(() => {
-    if (!showModalPremium || !dlocalScriptReady) {
-      return;
-    }
-
-    if (!window.dlocal) {
-      setErrorTarjeta(
-        'No se pudo cargar el formulario seguro de dLocal.'
-      );
-      return;
-    }
-
-    const apiKey = process.env.NEXT_PUBLIC_DLOCAL_API_KEY?.trim();
-
-    if (!apiKey) {
-      setErrorTarjeta(
-        'No está configurada la clave pública de dLocal Smart Fields.'
-      );
-      return;
-    }
-
-    let card: any = null;
-
-    try {
-      const dlocal = window.dlocal(apiKey);
-      const fields = dlocal.fields({
-        locale: 'es',
-        country: 'AR',
-      });
-
-      card = fields.create('card', {
-        style: {
-          base: {
-            fontSize: '14px',
-            color: '#0f172a',
-            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-          },
-        },
-      });
-
-      const container = document.getElementById('dlocal-card-field');
-
-      if (!container) {
-        throw new Error('No se encontró el contenedor de la tarjeta.');
-      }
-
-      card.mount(container);
-
-      card.on('change', (event: any) => {
-        setErrorTarjeta(event?.error?.message || '');
-      });
-
-      dlocalInstanceRef.current = dlocal;
-      dlocalCardRef.current = card;
-      setDlocalReady(true);
-    } catch (error) {
-      console.error('Error inicializando dLocal Smart Fields:', error);
-      setErrorTarjeta(
-        'No se pudo cargar el formulario seguro de tarjeta.'
-      );
-      setDlocalReady(false);
-    }
-
-    return () => {
-      try {
-        card?.destroy?.();
-      } catch (error) {
-        console.warn('No se pudo destruir el Smart Field:', error);
-      }
-
-      dlocalCardRef.current = null;
-      dlocalInstanceRef.current = null;
-      setDlocalReady(false);
-    };
-  }, [showModalPremium, dlocalScriptReady]);
 
   const [perfilForm, setPerfilForm] = useState<Perfil>({
     nombre: user.name ? `Centro de Servicios de ${user.name}` : 'Mi Empresa / Profesional',
@@ -1782,18 +1654,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   }
 
   return (
-    <>
-      <Script
-        src={
-          process.env.NODE_ENV === 'production'
-            ? 'https://js.dlocal.com'
-            : 'https://js-sandbox.dlocal.com'
-        }
-        strategy="afterInteractive"
-        onLoad={() => setDlocalScriptReady(true)}
-      />
-
-      <div className="mi-oficio-ui min-h-screen h-screen bg-[#f8fafc] font-sans text-slate-800 flex flex-col lg:flex-row relative selection:bg-blue-600 selection:text-white overflow-hidden">
+    <div className="mi-oficio-ui min-h-screen h-screen bg-[#f8fafc] font-sans text-slate-800 flex flex-col lg:flex-row relative selection:bg-blue-600 selection:text-white overflow-hidden">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -2653,14 +2514,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
                   </div>
                 </section>
 
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
-                  >
-                    Guardar datos 🚀
-                  </button>
-                </div>
+
 
               </form>
 
@@ -3286,102 +3140,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
           </div>
         </div>
       )}
-
-      {showModalPremium && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
-          onClick={() => {
-            if (!procesandoPago) setShowModalPremium(false);
-          }}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-5 flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">MiOficio Pro</p>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">Activar Premium</h2>
-                <p className="mt-1 text-sm text-slate-500">Accedé a todas las herramientas Premium.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!procesandoPago) setShowModalPremium(false);
-                }}
-                className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Cerrar"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="mb-5 rounded-xl bg-slate-50 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-600">MiOficio Premium</span>
-                <span className="text-lg font-bold text-slate-900">$ 4.999 ARS</span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="nombre-tarjeta" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Nombre del titular
-                </label>
-                <input
-                  id="nombre-tarjeta"
-                  type="text"
-                  value={nombreTarjeta}
-                  onChange={(event) => setNombreTarjeta(event.target.value)}
-                  placeholder="Nombre que figura en la tarjeta"
-                  disabled={procesandoPago}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:bg-slate-50"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="dlocal-card-field" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Tarjeta
-                </label>
-                <div
-                  id="dlocal-card-field"
-                  className="min-h-[46px] rounded-xl border border-slate-200 bg-white px-3 py-3"
-                />
-              </div>
-
-              {errorTarjeta && (
-                <div role="alert" className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                  {errorTarjeta}
-                </div>
-              )}
-
-              <div className="rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-                Tus datos de tarjeta se ingresan directamente en los campos seguros de dLocal. MiOficio no almacena el número de tarjeta ni el código de seguridad.
-              </div>
-
-              <p className="text-xs leading-5 text-slate-400">
-                Al continuar, aceptás que dLocal procese los datos necesarios para realizar el pago.
-              </p>
-
-              <button
-                type="button"
-                onClick={pagarPremiumConTarjeta}
-                disabled={procesandoPago || !dlocalReady || !nombreTarjeta.trim()}
-                className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {procesandoPago
-                  ? 'Procesando pago…'
-                  : !dlocalReady
-                    ? 'Cargando tarjeta…'
-                    : 'Pagar $ 4.999 ARS'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
-    </>
   );
 }
 

@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomUUID } from "crypto";
 
-import {
-  getAdminAuth,
-  getAdminDb,
-} from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -106,11 +103,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const notificationUrlError =
-      validatePublicHttpsUrl(
-        NOTIFICATION_URL,
-        "la URL de notificación de dLocal"
-      );
+    const notificationUrlError = validatePublicHttpsUrl(
+      NOTIFICATION_URL,
+      "la URL de notificación de dLocal"
+    );
 
     if (notificationUrlError) {
       return NextResponse.json(
@@ -124,14 +120,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const callbackUrl =
-      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+    const callbackUrl = `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
 
-    const callbackUrlError =
-      validatePublicHttpsUrl(
-        callbackUrl,
-        "la callback URL de dLocal"
-      );
+    const callbackUrlError = validatePublicHttpsUrl(
+      callbackUrl,
+      "la callback URL de dLocal"
+    );
 
     if (callbackUrlError) {
       return NextResponse.json(
@@ -145,15 +139,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authorization =
-      request.headers.get("authorization");
+    const authorization = request.headers.get("authorization");
 
     if (!authorization?.startsWith("Bearer ")) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "No autorizado. Falta el token de Firebase.",
+          error: "No autorizado. Falta el token de Firebase.",
         },
         {
           status: 401,
@@ -161,10 +153,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const firebaseToken =
-      authorization
-        .substring("Bearer ".length)
-        .trim();
+    const firebaseToken = authorization
+      .substring("Bearer ".length)
+      .trim();
 
     if (!firebaseToken) {
       return NextResponse.json(
@@ -180,18 +171,15 @@ export async function POST(request: NextRequest) {
 
     const adminAuth = getAdminAuth();
 
-    const decodedToken =
-      await adminAuth.verifyIdToken(
-        firebaseToken
-      );
+    const decodedToken = await adminAuth.verifyIdToken(
+      firebaseToken
+    );
 
-    const uid =
-      decodedToken.uid;
+    const uid = decodedToken.uid;
 
-    const firebaseEmail =
-      decodedToken.email
-        ?.trim()
-        .toLowerCase();
+    const firebaseEmail = decodedToken.email
+      ?.trim()
+      .toLowerCase();
 
     if (!firebaseEmail) {
       return NextResponse.json(
@@ -206,30 +194,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailKey =
-      safeEmailKey(firebaseEmail);
+    const emailKey = safeEmailKey(firebaseEmail);
 
-    const database =
-      getAdminDb();
+    const database = getAdminDb();
 
-    const profileSnapshot =
-      await database
-        .ref(
-          `usuarios_data/${emailKey}/perfil`
-        )
-        .once("value");
+    const profileSnapshot = await database
+      .ref(`usuarios_data/${emailKey}/perfil`)
+      .once("value");
 
-    const perfil =
-      profileSnapshot.val() ?? {};
+    const perfil = profileSnapshot.val() ?? {};
 
-    if (
-      perfil?.es_premium === true
-    ) {
+    if (perfil?.es_premium === true) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Tu cuenta ya tiene MiOficio Premium activo.",
+          error: "Tu cuenta ya tiene MiOficio Premium activo.",
         },
         {
           status: 409,
@@ -237,23 +216,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orderId =
-      createOrderId();
+    const orderId = createOrderId();
 
-    const payerName =
-      String(
-        decodedToken.name ||
-          perfil?.nombre ||
-          firebaseEmail.split("@")[0]
-      ).trim();
+    const payerName = String(
+      decodedToken.name ||
+        perfil?.nombre ||
+        firebaseEmail.split("@")[0]
+    ).trim();
 
-    const rawDocument =
-      String(
-        perfil?.cuit_cuil ?? ""
-      ).trim();
+    const rawDocument = String(
+      perfil?.cuit_cuil ?? ""
+    ).trim();
 
-    const document =
-      rawDocument.replace(/\D/g, "");
+    const document = rawDocument.replace(/\D/g, "");
 
     if (!document) {
       return NextResponse.json(
@@ -268,11 +243,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      !/^(?:\d{7,9}|\d{11})$/.test(
-        document
-      )
-    ) {
+    if (!/^(?:\d{7,9}|\d{11})$/.test(document)) {
       return NextResponse.json(
         {
           ok: false,
@@ -285,168 +256,100 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * IMPORTANTE:
-     *
-     * Este flujo utiliza Checkout REDIRECT.
-     *
-     * No enviamos:
-     * - payment_method_id
-     * - card
-     * - token
-     *
-     * dLocal Checkout se encarga de mostrar
-     * la pantalla segura para ingresar la tarjeta.
-     *
-     * save_payment_method permite guardar la
-     * tarjeta para futuros cobros merchant-initiated.
-     */
-
     const paymentBody = {
-      amount:
-        PREMIUM_AMOUNT,
+      amount: PREMIUM_AMOUNT,
+      currency: PREMIUM_CURRENCY,
+      country: PREMIUM_COUNTRY,
 
-      currency:
-        PREMIUM_CURRENCY,
-
-      country:
-        PREMIUM_COUNTRY,
-
-      payment_method_flow:
-        "REDIRECT",
+      payment_method_flow: "REDIRECT",
 
       payer: {
-        name:
-          payerName,
-
-        email:
-          firebaseEmail,
-
+        name: payerName,
+        email: firebaseEmail,
         document,
-
-        user_reference:
-          uid,
+        user_reference: uid,
       },
 
-      order_id:
-        orderId,
+      order_id: orderId,
 
-      description:
-        "MiOficio Premium - pago inicial",
+      description: "MiOficio Premium - pago inicial",
 
-      notification_url:
-        NOTIFICATION_URL,
+      notification_url: NOTIFICATION_URL,
 
-      callback_url:
-        callbackUrl,
+      callback_url: callbackUrl,
 
       save_payment_method: {
-        mode:
-          "unscheduled",
-
-        ask_consent:
-          true,
+        mode: "unscheduled",
+        ask_consent: true,
       },
     };
 
-    const body =
-      JSON.stringify(paymentBody);
+    const body = JSON.stringify(paymentBody);
 
-    const xDate =
-      new Date().toISOString();
+    const xDate = new Date().toISOString();
 
-    const signature =
-      createSignature(
-        DLOCAL_X_LOGIN,
-        xDate,
-        body,
-        DLOCAL_SECRET_KEY
-      );
+    const signature = createSignature(
+      DLOCAL_X_LOGIN,
+      xDate,
+      body,
+      DLOCAL_SECRET_KEY
+    );
 
-    const idempotencyKey =
-      randomUUID();
+    const idempotencyKey = randomUUID();
 
     console.log(
       "Enviando pago inicial Premium a dLocal:",
       {
-        amount:
-          PREMIUM_AMOUNT,
-
-        currency:
-          PREMIUM_CURRENCY,
-
-        country:
-          PREMIUM_COUNTRY,
-
-        flow:
-          "REDIRECT",
-
-        savePaymentMethod:
-          true,
-
+        amount: PREMIUM_AMOUNT,
+        currency: PREMIUM_CURRENCY,
+        country: PREMIUM_COUNTRY,
+        flow: "REDIRECT",
+        savePaymentMethod: true,
         orderId,
-
-        hasDocument:
-          Boolean(document),
+        hasDocument: Boolean(document),
       }
     );
 
-    const apiBase =
-      DLOCAL_API_URL.replace(
-        /\/+$/,
-        ""
-      );
+    const apiBase = DLOCAL_API_URL.replace(/\/+$/, "");
 
-    const dLocalResponse =
-      await fetch(
-        `${apiBase}/payments`,
-        {
-          method:
-            "POST",
+    const dLocalResponse = await fetch(
+      `${apiBase}/payments`,
+      {
+        method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+        headers: {
+          "Content-Type": "application/json",
 
-            "X-Date":
-              xDate,
+          "X-Date": xDate,
 
-            "X-Login":
-              DLOCAL_X_LOGIN,
+          "X-Login": DLOCAL_X_LOGIN,
 
-            "X-Trans-Key":
-              DLOCAL_X_TRANS_KEY,
+          "X-Trans-Key": DLOCAL_X_TRANS_KEY,
 
-            "X-Version":
-              "2.1",
+          "X-Version": "2.1",
 
-            "User-Agent":
-              "MiOficio/1.0",
+          "User-Agent": "MiOficio/1.0",
 
-            "X-Idempotency-Key":
-              idempotencyKey,
+          "X-Idempotency-Key": idempotencyKey,
 
-            "Authorization":
-              `V2-HMAC-SHA256, Signature: ${signature}`,
-          },
+          "Authorization":
+            `V2-HMAC-SHA256, Signature: ${signature}`,
+        },
 
-          body,
+        body,
 
-          cache:
-            "no-store",
-        }
-      );
+        cache: "no-store",
+      }
+    );
 
-    const rawResponse =
-      await dLocalResponse.text();
+    const rawResponse = await dLocalResponse.text();
 
     let dLocalData: any = null;
 
     try {
-      dLocalData =
-        rawResponse
-          ? JSON.parse(rawResponse)
-          : null;
+      dLocalData = rawResponse
+        ? JSON.parse(rawResponse)
+        : null;
     } catch {
       dLocalData = null;
     }
@@ -455,27 +358,13 @@ export async function POST(request: NextRequest) {
       console.error(
         "dLocal rechazó el pago inicial Premium:",
         {
-          status:
-            dLocalResponse.status,
-
-          code:
-            dLocalData?.code,
-
-          message:
-            dLocalData?.message,
-
-          param:
-            dLocalData?.param,
-
-          error:
-            dLocalData?.error,
-
-          detail:
-            dLocalData?.detail,
-
-          response:
-            dLocalData,
-
+          status: dLocalResponse.status,
+          code: dLocalData?.code,
+          message: dLocalData?.message,
+          param: dLocalData?.param,
+          error: dLocalData?.error,
+          detail: dLocalData?.detail,
+          response: dLocalData,
           orderId,
         }
       );
@@ -489,19 +378,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-
-          error:
-            dLocalMessage,
-
-          dlocalStatus:
-            dLocalResponse.status,
-
-          dlocalCode:
-            dLocalData?.code ?? null,
-
-          dlocalParam:
-            dLocalData?.param ?? null,
-
+          error: dLocalMessage,
+          dlocalStatus: dLocalResponse.status,
+          dlocalCode: dLocalData?.code ?? null,
+          dlocalParam: dLocalData?.param ?? null,
           orderId,
         },
         {
@@ -514,13 +394,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const paymentId =
-      dLocalData?.id ??
-      null;
+    const paymentId = dLocalData?.id ?? null;
 
     const paymentStatus =
-      dLocalData?.status ??
-      "PENDING";
+      dLocalData?.status ?? "PENDING";
 
     const redirectUrl =
       dLocalData?.redirect_url ??
@@ -528,9 +405,7 @@ export async function POST(request: NextRequest) {
       dLocalData?.redirectUrl ??
       null;
 
-    const cardData =
-      dLocalData?.card ??
-      {};
+    const cardData = dLocalData?.card ?? {};
 
     const cardId =
       cardData?.card_id ??
@@ -548,82 +423,56 @@ export async function POST(request: NextRequest) {
       null;
 
     await database
-      .ref(
-        `dlocal_orders/${orderId}`
-      )
+      .ref(`dlocal_orders/${orderId}`)
       .set({
-        order_id:
-          orderId,
+        order_id: orderId,
 
-        payment_id:
-          paymentId,
+        payment_id: paymentId,
 
         uid,
 
-        email:
-          firebaseEmail,
+        email: firebaseEmail,
 
-        amount:
-          PREMIUM_AMOUNT,
+        amount: PREMIUM_AMOUNT,
 
-        currency:
-          PREMIUM_CURRENCY,
+        currency: PREMIUM_CURRENCY,
 
-        country:
-          PREMIUM_COUNTRY,
+        country: PREMIUM_COUNTRY,
 
-        product:
-          "MiOficio Premium",
+        product: "MiOficio Premium",
 
-        provider:
-          "dlocal",
+        provider: "dlocal",
 
-        status:
-          paymentStatus,
+        status: paymentStatus,
 
-        payment_flow:
-          "REDIRECT",
+        payment_flow: "REDIRECT",
 
-        save_payment_method:
-          true,
+        save_payment_method: true,
 
-        save_payment_method_mode:
-          "unscheduled",
+        save_payment_method_mode: "unscheduled",
 
-        card_id:
-          cardId,
+        card_id: cardId,
 
-        network_tx_reference:
-          networkTxReference,
+        network_tx_reference: networkTxReference,
 
-        transaction_link_id:
-          transactionLinkId,
+        transaction_link_id: transactionLinkId,
 
-        notification_url:
-          NOTIFICATION_URL,
+        notification_url: NOTIFICATION_URL,
 
-        callback_url:
-          callbackUrl,
+        callback_url: callbackUrl,
 
-        redirect_url:
-          redirectUrl,
+        redirect_url: redirectUrl,
 
-        created_at:
-          new Date().toISOString(),
+        created_at: new Date().toISOString(),
       });
 
     console.log(
       "Pago dLocal creado correctamente:",
       {
         orderId,
-
         paymentId,
-
-        status:
-          paymentStatus,
-
-        hasRedirectUrl:
-          Boolean(redirectUrl),
+        status: paymentStatus,
+        hasRedirectUrl: Boolean(redirectUrl),
       }
     );
 
@@ -634,13 +483,11 @@ export async function POST(request: NextRequest) {
 
       paymentId,
 
-      status:
-        paymentStatus,
+      status: paymentStatus,
 
       redirectUrl,
 
-      redirect_url:
-        redirectUrl,
+      redirect_url: redirectUrl,
 
       message:
         "Pago creado correctamente. Redirigiendo a dLocal Checkout.",
@@ -668,40 +515,33 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  const callbackUrl =
+    `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+
   return NextResponse.json({
     ok: true,
 
-    service:
-      "MiOficio dLocal create payment",
+    service: "MiOficio dLocal create payment",
 
-    method:
-      "POST",
+    method: "POST",
 
-    product:
-      "MiOficio Premium",
+    product: "MiOficio Premium",
 
-    amount:
-      PREMIUM_AMOUNT,
+    amount: PREMIUM_AMOUNT,
 
-    currency:
-      PREMIUM_CURRENCY,
+    currency: PREMIUM_CURRENCY,
 
-    country:
-      PREMIUM_COUNTRY,
+    country: PREMIUM_COUNTRY,
 
-    paymentFlow:
-      "REDIRECT",
+    paymentFlow: "REDIRECT",
 
-    savePaymentMethod:
-      true,
+    savePaymentMethod: true,
 
     notificationConfigured:
       Boolean(NOTIFICATION_URL),
 
-    notificationUrl:
-      NOTIFICATION_URL,
+    notificationUrl: NOTIFICATION_URL,
 
-    callbackUrl:
-      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`,
+    callbackUrl,
   });
 }
