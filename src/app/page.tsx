@@ -956,12 +956,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     useEffect(() => {
     const params = new URLSearchParams(window.location.search);
    const regresoDlocal = params.get('dlocal') === 'return';
-const pruebaPremium = params.get('testPremiumWelcome') === '1';
-
-if (pruebaPremium) {
-  setMostrarBienvenidaPremium(true);
-  return;
-}
 
 if (!regresoDlocal) return;
     // Limpiamos la URL sin recargar la aplicación.
