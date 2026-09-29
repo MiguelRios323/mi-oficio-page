@@ -953,60 +953,26 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     plantilla_estilo: 'Profesional'
   });
 
-   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const regresoDlocal = params.get('dlocal') === 'return';
+    useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+   const regresoDlocal = params.get('dlocal') === 'return';
+const pruebaPremium = params.get('testPremiumWelcome') === '1';
 
-  if (!regresoDlocal) return;
+if (pruebaPremium) {
+  setMostrarBienvenidaPremium(true);
+  return;
+}
 
-  // Esperamos a que Firebase confirme que Premium está activo.
-  if (perfilForm.es_premium) {
-    setMostrarBienvenidaPremium(true);
+if (!regresoDlocal) return;
+    // Limpiamos la URL sin recargar la aplicación.
+    window.history.replaceState({}, '', window.location.pathname);
 
-    window.history.replaceState(
-      {},
-      '',
-      window.location.pathname
-    );
-
-    return;
-  }
-
-  // Firebase puede tardar unos instantes en actualizar el perfil.
-  let intentos = 0;
-
-  const intervalo = window.setInterval(() => {
-    intentos += 1;
-
+    // El webhook es la fuente definitiva del estado Premium.
+    // Esperamos a que Firebase cargue el perfil antes de mostrar la bienvenida.
     if (perfilForm.es_premium) {
       setMostrarBienvenidaPremium(true);
-
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname
-      );
-
-      window.clearInterval(intervalo);
-      return;
     }
-
-    // Máximo 10 segundos de espera.
-    if (intentos >= 20) {
-      window.clearInterval(intervalo);
-
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname
-      );
-    }
-  }, 500);
-
-  return () => {
-    window.clearInterval(intervalo);
-  };
-}, [perfilForm.es_premium]);
+  }, [perfilForm.es_premium]);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [presupuestos, setPresupuestos] = useState<Presupuesto[]>([]);
