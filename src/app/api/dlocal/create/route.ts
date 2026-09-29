@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomUUID } from "crypto";
-
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const DLOCAL_API_URL =
-  process.env.DLOCAL_API_URL?.trim() ||
-  "https://sandbox.dlocal.com";
+  process.env.DLOCAL_API_URL?.trim() || "https://sandbox.dlocal.com";
 
-const DLOCAL_X_LOGIN =
-  process.env.DLOCAL_X_LOGIN?.trim();
-
-const DLOCAL_X_TRANS_KEY =
-  process.env.DLOCAL_X_TRANS_KEY?.trim();
-
-const DLOCAL_SECRET_KEY =
-  process.env.DLOCAL_SECRET_KEY?.trim();
+const DLOCAL_X_LOGIN = process.env.DLOCAL_X_LOGIN?.trim();
+const DLOCAL_X_TRANS_KEY = process.env.DLOCAL_X_TRANS_KEY?.trim();
+const DLOCAL_SECRET_KEY = process.env.DLOCAL_SECRET_KEY?.trim();
 
 const NOTIFICATION_URL =
   process.env.DLOCAL_NOTIFICATION_URL?.trim() ||
@@ -86,6 +79,12 @@ function validatePublicHttpsUrl(
 
 export async function POST(request: NextRequest) {
   try {
+    /*
+     * ---------------------------------------------------------
+     * 1. Verificar configuración de dLocal
+     * ---------------------------------------------------------
+     */
+
     if (
       !DLOCAL_X_LOGIN ||
       !DLOCAL_X_TRANS_KEY ||
@@ -103,14 +102,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const callbackUrl =
-      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+    /*
+     * ---------------------------------------------------------
+     * 2. Callback de regreso a MiOficio
+     * ---------------------------------------------------------
+     */
 
-    const callbackUrlError =
-      validatePublicHttpsUrl(
-        callbackUrl,
-        "la callback URL de dLocal"
-      );
+    const callbackUrl = `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+
+    const callbackUrlError = validatePublicHttpsUrl(
+      callbackUrl,
+      "la callback URL de dLocal"
+    );
 
     if (callbackUrlError) {
       return NextResponse.json(
@@ -124,15 +127,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authorization =
-      request.headers.get("authorization");
+    /*
+     * ---------------------------------------------------------
+     * 3. Verificar Firebase
+     * ---------------------------------------------------------
+     */
+
+    const authorization = request.headers.get("authorization");
 
     if (!authorization?.startsWith("Bearer ")) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "No autorizado. Falta el token de Firebase.",
+          error: "No autorizado. Falta el token de Firebase.",
         },
         {
           status: 401,
@@ -140,10 +147,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const firebaseToken =
-      authorization
-        .substring("Bearer ".length)
-        .trim();
+    const firebaseToken = authorization
+      .substring("Bearer ".length)
+      .trim();
 
     if (!firebaseToken) {
       return NextResponse.json(
@@ -159,18 +165,13 @@ export async function POST(request: NextRequest) {
 
     const adminAuth = getAdminAuth();
 
-    const decodedToken =
-      await adminAuth.verifyIdToken(
-        firebaseToken
-      );
+    const decodedToken = await adminAuth.verifyIdToken(firebaseToken);
 
-    const uid =
-      decodedToken.uid;
+    const uid = decodedToken.uid;
 
-    const firebaseEmail =
-      decodedToken.email
-        ?.trim()
-        .toLowerCase();
+    const firebaseEmail = decodedToken.email
+      ?.trim()
+      .toLowerCase();
 
     if (!firebaseEmail) {
       return NextResponse.json(
@@ -185,30 +186,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailKey =
-      safeEmailKey(firebaseEmail);
+    /*
+     * ---------------------------------------------------------
+     * 4. Obtener perfil del usuario
+     * ---------------------------------------------------------
+     */
 
-    const database =
-      getAdminDb();
+    const emailKey = safeEmailKey(firebaseEmail);
 
-    const profileSnapshot =
-      await database
-        .ref(
-          `usuarios_data/${emailKey}/perfil`
-        )
-        .once("value");
+    const database = getAdminDb();
 
-    const perfil =
-      profileSnapshot.val() ?? {};
+    const profileSnapshot = await database
+      .ref(`usuarios_data/${emailKey}/perfil`)
+      .once("value");
 
-    if (
-      perfil?.es_premium === true
-    ) {
+    const perfil = profileSnapshot.val() ?? {};
+
+    if (perfil?.es_premium === true) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Tu cuenta ya tiene MiOficio Premium activo.",
+          error: "Tu cuenta ya tiene MiOficio Premium activo.",
         },
         {
           status: 409,
@@ -216,23 +214,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const orderId =
-      createOrderId();
+    /*
+     * ---------------------------------------------------------
+     * 5. Obtener documento
+     * ---------------------------------------------------------
+     */
 
-    const payerName =
-      String(
-        decodedToken.name ||
-          perfil?.nombre ||
-          firebaseEmail.split("@")[0]
-      ).trim();
+    const rawDocument = String(
+      perfil?.cuit_cuil ?? ""
+    ).trim();
 
-    const rawDocument =
-      String(
-        perfil?.cuit_cuil ?? ""
-      ).trim();
-
-    const document =
-      rawDocument.replace(/\D/g, "");
+    const document = rawDocument.replace(/\D/g, "");
 
     if (!document) {
       return NextResponse.json(
@@ -247,11 +239,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      !/^(?:\d{7,9}|\d{11})$/.test(
-        document
-      )
-    ) {
+    if (!/^(?:\d{7,9}|\d{11})$/.test(document)) {
       return NextResponse.json(
         {
           ok: false,
@@ -265,183 +253,158 @@ export async function POST(request: NextRequest) {
     }
 
     /*
-     * PRUEBA 1:
+     * ---------------------------------------------------------
+     * 6. Crear orden
+     * ---------------------------------------------------------
+     */
+
+    const orderId = createOrderId();
+
+    const payerName = String(
+      decodedToken.name ||
+        perfil?.nombre ||
+        firebaseEmail.split("@")[0]
+    ).trim();
+
+    /*
+     * ---------------------------------------------------------
+     * 7. Checkout REDIRECT básico
      *
-     * Checkout REDIRECT básico.
+     * IMPORTANTE:
      *
-     * No enviamos:
+     * NO enviamos:
      * - payment_method_id
      * - save_payment_method
      * - subscription
      * - notification_url
      *
-     * Dejamos únicamente los datos básicos
-     * necesarios para crear el Checkout.
+     * Primero queremos comprobar que dLocal pueda crear
+     * correctamente el Checkout Redirect básico.
+     * ---------------------------------------------------------
      */
 
     const paymentBody = {
-      amount:
-        PREMIUM_AMOUNT,
-
-      currency:
-        PREMIUM_CURRENCY,
-
-      country:
-        PREMIUM_COUNTRY,
-
-      payment_method_flow:
-        "REDIRECT",
+      amount: PREMIUM_AMOUNT,
+      currency: PREMIUM_CURRENCY,
+      country: PREMIUM_COUNTRY,
+      payment_method_flow: "REDIRECT",
 
       payer: {
-        name:
-          payerName,
-
-        email:
-          firebaseEmail,
-
+        name: payerName,
+        email: firebaseEmail,
         document,
-
-        user_reference:
-          uid,
+        user_reference: uid,
       },
 
-      order_id:
-        orderId,
+      order_id: orderId,
 
-      description:
-        "MiOficio Premium",
+      description: "MiOficio Premium",
 
-      callback_url:
-        callbackUrl,
+      callback_url: callbackUrl,
     };
 
-    const body =
-      JSON.stringify(paymentBody);
+    const body = JSON.stringify(paymentBody);
 
-    const xDate =
-      new Date().toISOString();
+    /*
+     * ---------------------------------------------------------
+     * 8. Firma HMAC dLocal
+     * ---------------------------------------------------------
+     */
 
-    const signature =
-      createSignature(
-        DLOCAL_X_LOGIN,
-        xDate,
-        body,
-        DLOCAL_SECRET_KEY
-      );
+    const xDate = new Date().toISOString();
 
-    const idempotencyKey =
-      randomUUID();
+    const signature = createSignature(
+      DLOCAL_X_LOGIN,
+      xDate,
+      body,
+      DLOCAL_SECRET_KEY
+    );
 
-    console.log(
-      "Enviando Checkout básico a dLocal:",
+    const idempotencyKey = randomUUID();
+
+    /*
+     * ---------------------------------------------------------
+     * 9. Log seguro
+     * ---------------------------------------------------------
+     */
+
+    console.log("Enviando Checkout básico a dLocal:", {
+      amount: PREMIUM_AMOUNT,
+      currency: PREMIUM_CURRENCY,
+      country: PREMIUM_COUNTRY,
+      flow: "REDIRECT",
+      orderId,
+      hasDocument: Boolean(document),
+      callbackUrl,
+      apiUrl: DLOCAL_API_URL,
+      paymentBody,
+    });
+
+    /*
+     * ---------------------------------------------------------
+     * 10. Crear pago en dLocal
+     * ---------------------------------------------------------
+     */
+
+    const apiBase = DLOCAL_API_URL.replace(/\/+$/, "");
+
+    const dLocalResponse = await fetch(
+      `${apiBase}/payments`,
       {
-        amount:
-          PREMIUM_AMOUNT,
+        method: "POST",
 
-        currency:
-          PREMIUM_CURRENCY,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Date": xDate,
+          "X-Login": DLOCAL_X_LOGIN,
+          "X-Trans-Key": DLOCAL_X_TRANS_KEY,
+          "X-Version": "2.1",
+          "User-Agent": "MiOficio/1.0",
+          "X-Idempotency-Key": idempotencyKey,
+          "Authorization": `V2-HMAC-SHA256, Signature: ${signature}`,
+        },
 
-        country:
-          PREMIUM_COUNTRY,
+        body,
 
-        flow:
-          "REDIRECT",
-
-        orderId,
-
-        hasDocument:
-          Boolean(document),
-
-        body:
-          paymentBody,
+        cache: "no-store",
       }
     );
 
-    const apiBase =
-      DLOCAL_API_URL.replace(
-        /\/+$/,
-        ""
-      );
+    /*
+     * ---------------------------------------------------------
+     * 11. Leer respuesta
+     * ---------------------------------------------------------
+     */
 
-    const dLocalResponse =
-      await fetch(
-        `${apiBase}/payments`,
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            "X-Date":
-              xDate,
-
-            "X-Login":
-              DLOCAL_X_LOGIN,
-
-            "X-Trans-Key":
-              DLOCAL_X_TRANS_KEY,
-
-            "X-Version":
-              "2.1",
-
-            "User-Agent":
-              "MiOficio/1.0",
-
-            "X-Idempotency-Key":
-              idempotencyKey,
-
-            "Authorization":
-              `V2-HMAC-SHA256, Signature: ${signature}`,
-          },
-
-          body,
-
-          cache:
-            "no-store",
-        }
-      );
-
-    const rawResponse =
-      await dLocalResponse.text();
+    const rawResponse = await dLocalResponse.text();
 
     let dLocalData: any = null;
 
     try {
-      dLocalData =
-        rawResponse
-          ? JSON.parse(rawResponse)
-          : null;
+      dLocalData = rawResponse
+        ? JSON.parse(rawResponse)
+        : null;
     } catch {
       dLocalData = null;
     }
+
+    /*
+     * ---------------------------------------------------------
+     * 12. Error dLocal
+     * ---------------------------------------------------------
+     */
 
     if (!dLocalResponse.ok) {
       console.error(
         "dLocal rechazó el Checkout básico:",
         {
-          status:
-            dLocalResponse.status,
-
-          code:
-            dLocalData?.code,
-
-          message:
-            dLocalData?.message,
-
-          param:
-            dLocalData?.param,
-
-          error:
-            dLocalData?.error,
-
-          detail:
-            dLocalData?.detail,
-
-          response:
-            dLocalData,
-
+          status: dLocalResponse.status,
+          code: dLocalData?.code,
+          message: dLocalData?.message,
+          param: dLocalData?.param,
+          error: dLocalData?.error,
+          detail: dLocalData?.detail,
+          response: dLocalData,
           orderId,
         }
       );
@@ -455,21 +418,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-
-          error:
-            dLocalMessage,
-
-          dlocalStatus:
-            dLocalResponse.status,
-
-          dlocalCode:
-            dLocalData?.code ??
-            null,
-
-          dlocalParam:
-            dLocalData?.param ??
-            null,
-
+          error: dLocalMessage,
+          dlocalStatus: dLocalResponse.status,
+          dlocalCode: dLocalData?.code ?? null,
+          dlocalParam: dLocalData?.param ?? null,
           orderId,
         },
         {
@@ -482,13 +434,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const paymentId =
-      dLocalData?.id ??
-      null;
+    /*
+     * ---------------------------------------------------------
+     * 13. Pago creado
+     * ---------------------------------------------------------
+     */
+
+    const paymentId = dLocalData?.id ?? null;
 
     const paymentStatus =
-      dLocalData?.status ??
-      "PENDING";
+      dLocalData?.status ?? "PENDING";
 
     const redirectUrl =
       dLocalData?.redirect_url ??
@@ -496,88 +451,72 @@ export async function POST(request: NextRequest) {
       dLocalData?.redirectUrl ??
       null;
 
+    /*
+     * ---------------------------------------------------------
+     * 14. Guardar orden en Firebase
+     * ---------------------------------------------------------
+     */
+
     await database
-      .ref(
-        `dlocal_orders/${orderId}`
-      )
+      .ref(`dlocal_orders/${orderId}`)
       .set({
-        order_id:
-          orderId,
-
-        payment_id:
-          paymentId,
-
+        order_id: orderId,
+        payment_id: paymentId,
         uid,
+        email: firebaseEmail,
 
-        email:
-          firebaseEmail,
+        amount: PREMIUM_AMOUNT,
+        currency: PREMIUM_CURRENCY,
+        country: PREMIUM_COUNTRY,
 
-        amount:
-          PREMIUM_AMOUNT,
+        product: "MiOficio Premium",
+        provider: "dlocal",
 
-        currency:
-          PREMIUM_CURRENCY,
+        status: paymentStatus,
 
-        country:
-          PREMIUM_COUNTRY,
+        payment_flow: "REDIRECT",
 
-        product:
-          "MiOficio Premium",
+        save_payment_method: false,
 
-        provider:
-          "dlocal",
+        notification_url: NOTIFICATION_URL,
 
-        status:
-          paymentStatus,
+        callback_url: callbackUrl,
 
-        payment_flow:
-          "REDIRECT",
+        redirect_url: redirectUrl,
 
-        save_payment_method:
-          false,
-
-        notification_url:
-          NOTIFICATION_URL,
-
-        callback_url:
-          callbackUrl,
-
-        redirect_url:
-          redirectUrl,
-
-        created_at:
-          new Date().toISOString(),
+        created_at: new Date().toISOString(),
       });
+
+    /*
+     * ---------------------------------------------------------
+     * 15. Log de éxito
+     * ---------------------------------------------------------
+     */
 
     console.log(
       "Checkout dLocal creado correctamente:",
       {
         orderId,
-
         paymentId,
-
-        status:
-          paymentStatus,
-
-        hasRedirectUrl:
-          Boolean(redirectUrl),
+        status: paymentStatus,
+        hasRedirectUrl: Boolean(redirectUrl),
       }
     );
 
+    /*
+     * ---------------------------------------------------------
+     * 16. Respuesta al frontend
+     * ---------------------------------------------------------
+     */
+
     return NextResponse.json({
       ok: true,
-
       orderId,
-
       paymentId,
-
-      status:
-        paymentStatus,
+      status: paymentStatus,
 
       redirectUrl,
-
-      redirect_url:
-        redirectUrl,
+      redirect_url: redirectUrl,
 
       message:
         "Checkout creado correctamente. Redirigiendo a dLocal.",
@@ -591,7 +530,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-
         error:
           error instanceof Error
             ? error.message
@@ -604,6 +542,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/*
+ * ---------------------------------------------------------
+ * GET
+ * ---------------------------------------------------------
+ */
+
 export async function GET() {
   const callbackUrl =
     `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
@@ -614,8 +558,7 @@ export async function GET() {
     service:
       "MiOficio dLocal create payment",
 
-    method:
-      "POST",
+    method: "POST",
 
     product:
       "MiOficio Premium",
