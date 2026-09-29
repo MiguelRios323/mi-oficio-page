@@ -103,15 +103,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * La notification_url se mantiene configurada
-     * para el webhook, pero NO se envía en este request
-     * de creación de pago.
-     *
-     * La quitamos temporalmente del paymentBody para
-     * comprobar si es la causa del error 400 / code 5000.
-     */
-
     const callbackUrl =
       `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
 
@@ -274,15 +265,18 @@ export async function POST(request: NextRequest) {
     }
 
     /*
-     * PAYMENT BODY
+     * PRUEBA 1:
      *
-     * REDIRECT:
-     * dLocal muestra el Checkout y devuelve
-     * una redirect_url.
+     * Checkout REDIRECT básico.
      *
-     * notification_url:
-     * NO se envía temporalmente para aislar
-     * el error 400 / code 5000.
+     * No enviamos:
+     * - payment_method_id
+     * - save_payment_method
+     * - subscription
+     * - notification_url
+     *
+     * Dejamos únicamente los datos básicos
+     * necesarios para crear el Checkout.
      */
 
     const paymentBody = {
@@ -315,18 +309,10 @@ export async function POST(request: NextRequest) {
         orderId,
 
       description:
-        "MiOficio Premium - pago inicial",
+        "MiOficio Premium",
 
       callback_url:
         callbackUrl,
-
-      save_payment_method: {
-        mode:
-          "unscheduled",
-
-        ask_consent:
-          true,
-      },
     };
 
     const body =
@@ -347,7 +333,7 @@ export async function POST(request: NextRequest) {
       randomUUID();
 
     console.log(
-      "Enviando pago inicial Premium a dLocal:",
+      "Enviando Checkout básico a dLocal:",
       {
         amount:
           PREMIUM_AMOUNT,
@@ -361,16 +347,13 @@ export async function POST(request: NextRequest) {
         flow:
           "REDIRECT",
 
-        savePaymentMethod:
-          true,
-
         orderId,
 
         hasDocument:
           Boolean(document),
 
-        hasNotificationUrl:
-          false,
+        body:
+          paymentBody,
       }
     );
 
@@ -436,7 +419,7 @@ export async function POST(request: NextRequest) {
 
     if (!dLocalResponse.ok) {
       console.error(
-        "dLocal rechazó el pago inicial Premium:",
+        "dLocal rechazó el Checkout básico:",
         {
           status:
             dLocalResponse.status,
@@ -513,25 +496,6 @@ export async function POST(request: NextRequest) {
       dLocalData?.redirectUrl ??
       null;
 
-    const cardData =
-      dLocalData?.card ??
-      {};
-
-    const cardId =
-      cardData?.card_id ??
-      dLocalData?.card_id ??
-      null;
-
-    const networkTxReference =
-      cardData?.network_tx_reference ??
-      dLocalData?.network_tx_reference ??
-      null;
-
-    const transactionLinkId =
-      cardData?.transaction_link_id ??
-      dLocalData?.transaction_link_id ??
-      null;
-
     await database
       .ref(
         `dlocal_orders/${orderId}`
@@ -570,25 +534,8 @@ export async function POST(request: NextRequest) {
           "REDIRECT",
 
         save_payment_method:
-          true,
+          false,
 
-        save_payment_method_mode:
-          "unscheduled",
-
-        card_id:
-          cardId,
-
-        network_tx_reference:
-          networkTxReference,
-
-        transaction_link_id:
-          transactionLinkId,
-
-        /*
-         * Se guarda la URL del webhook en nuestra
-         * base de datos para referencia, aunque
-         * temporalmente no se envía en el request.
-         */
         notification_url:
           NOTIFICATION_URL,
 
@@ -603,7 +550,7 @@ export async function POST(request: NextRequest) {
       });
 
     console.log(
-      "Pago dLocal creado correctamente:",
+      "Checkout dLocal creado correctamente:",
       {
         orderId,
 
@@ -633,11 +580,11 @@ export async function POST(request: NextRequest) {
         redirectUrl,
 
       message:
-        "Pago creado correctamente. Redirigiendo a dLocal Checkout.",
+        "Checkout creado correctamente. Redirigiendo a dLocal.",
     });
   } catch (error) {
     console.error(
-      "Error interno creando pago dLocal:",
+      "Error interno creando Checkout dLocal:",
       error
     );
 
@@ -686,7 +633,7 @@ export async function GET() {
       "REDIRECT",
 
     savePaymentMethod:
-      true,
+      false,
 
     notificationConfigured:
       Boolean(NOTIFICATION_URL),
