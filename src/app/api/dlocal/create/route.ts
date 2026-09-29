@@ -22,17 +22,13 @@ const DLOCAL_X_TRANS_KEY =
 const DLOCAL_SECRET_KEY =
   process.env.DLOCAL_SECRET_KEY?.trim();
 
-const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-  "http://localhost:3000";
-
-const CALLBACK_URL =
-  process.env.DLOCAL_CALLBACK_URL?.trim() ||
-  `${APP_URL}/?dlocal=success`;
-
 const NOTIFICATION_URL =
   process.env.DLOCAL_NOTIFICATION_URL?.trim() ||
-  `${APP_URL}/api/dlocal/webhook`;
+  "https://mioficio-sepia.vercel.app/api/dlocal/webhook";
+
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+  "https://mioficio-sepia.vercel.app";
 
 const PREMIUM_AMOUNT = 4999;
 const PREMIUM_CURRENCY = "ARS";
@@ -41,7 +37,7 @@ const PREMIUM_COUNTRY = "AR";
 function safeEmailKey(email: string): string {
   return email
     .toLowerCase()
-    .replace(/[.#$[\]\\/]/g, "_")
+    .replace(/[.#$[\]/\\]/g, "_")
     .slice(0, 100);
 }
 
@@ -52,23 +48,47 @@ function createSignature(
   secretKey: string
 ): string {
   return createHmac("sha256", secretKey)
-    .update(login + xDate + body)
+    .update(login + xDate + body, "utf8")
     .digest("hex");
 }
 
 function createOrderId(): string {
-  return `MIOFICIO-${Date.now()}-${randomUUID().slice(
-    0,
-    8
-  )}`;
+  return `MIOFICIO-${Date.now()}-${randomUUID().slice(0, 8)}`;
+}
+
+function validatePublicHttpsUrl(
+  url: string,
+  fieldName: string
+): string | null {
+  if (!url) {
+    return `No está configurada ${fieldName}.`;
+  }
+
+  let parsed: URL;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    return `${fieldName} no es una URL válida.`;
+  }
+
+  if (parsed.protocol !== "https:") {
+    return `${fieldName} debe utilizar HTTPS.`;
+  }
+
+  if (
+    parsed.hostname === "localhost" ||
+    parsed.hostname === "127.0.0.1" ||
+    parsed.hostname === "0.0.0.0"
+  ) {
+    return `${fieldName} no puede apuntar a localhost.`;
+  }
+
+  return null;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // -------------------------------------------------------
-    // 1. Configuración
-    // -------------------------------------------------------
-
     if (
       !DLOCAL_X_LOGIN ||
       !DLOCAL_X_TRANS_KEY ||
@@ -80,13 +100,50 @@ export async function POST(request: NextRequest) {
           error:
             "La configuración de dLocal está incompleta en el servidor.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
-    // -------------------------------------------------------
-    // 2. Firebase token
-    // -------------------------------------------------------
+    const notificationUrlError =
+      validatePublicHttpsUrl(
+        NOTIFICATION_URL,
+        "la URL de notificación de dLocal"
+      );
+
+    if (notificationUrlError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: notificationUrlError,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    const callbackUrl =
+      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`;
+
+    const callbackUrlError =
+      validatePublicHttpsUrl(
+        callbackUrl,
+        "la callback URL de dLocal"
+      );
+
+    if (callbackUrlError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: callbackUrlError,
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
     const authorization =
       request.headers.get("authorization");
@@ -98,7 +155,9 @@ export async function POST(request: NextRequest) {
           error:
             "No autorizado. Falta el token de Firebase.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
@@ -113,13 +172,11 @@ export async function POST(request: NextRequest) {
           ok: false,
           error: "Token de Firebase vacío.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
-
-    // -------------------------------------------------------
-    // 3. Verificar usuario
-    // -------------------------------------------------------
 
     const adminAuth = getAdminAuth();
 
@@ -128,7 +185,8 @@ export async function POST(request: NextRequest) {
         firebaseToken
       );
 
-    const uid = decodedToken.uid;
+    const uid =
+      decodedToken.uid;
 
     const firebaseEmail =
       decodedToken.email
@@ -142,18 +200,17 @@ export async function POST(request: NextRequest) {
           error:
             "Tu cuenta de Firebase no tiene un correo electrónico asociado.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
-
-    // -------------------------------------------------------
-    // 4. Obtener perfil
-    // -------------------------------------------------------
 
     const emailKey =
       safeEmailKey(firebaseEmail);
 
-    const database = getAdminDb();
+    const database =
+      getAdminDb();
 
     const profileSnapshot =
       await database
@@ -165,24 +222,30 @@ export async function POST(request: NextRequest) {
     const perfil =
       profileSnapshot.val() ?? {};
 
-    // -------------------------------------------------------
-    // 5. Evitar doble Premium
-    // -------------------------------------------------------
-
-    if (perfil?.es_premium === true) {
+    if (
+      perfil?.es_premium === true
+    ) {
       return NextResponse.json(
         {
           ok: false,
           error:
             "Tu cuenta ya tiene MiOficio Premium activo.",
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       );
     }
 
-    // -------------------------------------------------------
-    // 6. Documento
-    // -------------------------------------------------------
+    const orderId =
+      createOrderId();
+
+    const payerName =
+      String(
+        decodedToken.name ||
+          perfil?.nombre ||
+          firebaseEmail.split("@")[0]
+      ).trim();
 
     const rawDocument =
       String(
@@ -199,7 +262,9 @@ export async function POST(request: NextRequest) {
           error:
             "Antes de activar Premium, completá tu CUIT / DNI en Perfil y guardá los datos.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -214,29 +279,28 @@ export async function POST(request: NextRequest) {
           error:
             "El CUIT / DNI ingresado en Perfil no tiene un formato válido.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // -------------------------------------------------------
-    // 7. Orden
-    // -------------------------------------------------------
-
-    const orderId =
-      createOrderId();
-
-    // -------------------------------------------------------
-    // 8. Pago inicial
-    //
-    // IMPORTANTE:
-    //
-    // NO enviamos payment_method_id.
-    //
-    // dLocal Checkout REDIRECT determina el medio de pago.
-    //
-    // save_payment_method pide a dLocal guardar la tarjeta
-    // para futuras operaciones.
-    // -------------------------------------------------------
+    /*
+     * IMPORTANTE:
+     *
+     * Este flujo utiliza Checkout REDIRECT.
+     *
+     * No enviamos:
+     * - payment_method_id
+     * - card
+     * - token
+     *
+     * dLocal Checkout se encarga de mostrar
+     * la pantalla segura para ingresar la tarjeta.
+     *
+     * save_payment_method permite guardar la
+     * tarjeta para futuros cobros merchant-initiated.
+     */
 
     const paymentBody = {
       amount:
@@ -252,11 +316,8 @@ export async function POST(request: NextRequest) {
         "REDIRECT",
 
       payer: {
-        name: String(
-          decodedToken.name ||
-            perfil?.nombre ||
-            firebaseEmail.split("@")[0]
-        ).trim(),
+        name:
+          payerName,
 
         email:
           firebaseEmail,
@@ -277,19 +338,19 @@ export async function POST(request: NextRequest) {
         NOTIFICATION_URL,
 
       callback_url:
-        CALLBACK_URL,
+        callbackUrl,
 
       save_payment_method: {
-        save: true,
+        mode:
+          "unscheduled",
+
+        ask_consent:
+          true,
       },
     };
 
     const body =
       JSON.stringify(paymentBody);
-
-    // -------------------------------------------------------
-    // 9. Firma
-    // -------------------------------------------------------
 
     const xDate =
       new Date().toISOString();
@@ -302,16 +363,8 @@ export async function POST(request: NextRequest) {
         DLOCAL_SECRET_KEY
       );
 
-    // -------------------------------------------------------
-    // 10. Idempotencia
-    // -------------------------------------------------------
-
     const idempotencyKey =
       randomUUID();
-
-    // -------------------------------------------------------
-    // 11. Log seguro
-    // -------------------------------------------------------
 
     console.log(
       "Enviando pago inicial Premium a dLocal:",
@@ -338,15 +391,18 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // -------------------------------------------------------
-    // 12. Crear pago
-    // -------------------------------------------------------
+    const apiBase =
+      DLOCAL_API_URL.replace(
+        /\/+$/,
+        ""
+      );
 
     const dLocalResponse =
       await fetch(
-        `${DLOCAL_API_URL}/payments`,
+        `${apiBase}/payments`,
         {
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
             "Content-Type":
@@ -381,10 +437,6 @@ export async function POST(request: NextRequest) {
         }
       );
 
-    // -------------------------------------------------------
-    // 13. Respuesta
-    // -------------------------------------------------------
-
     const rawResponse =
       await dLocalResponse.text();
 
@@ -398,10 +450,6 @@ export async function POST(request: NextRequest) {
     } catch {
       dLocalData = null;
     }
-
-    // -------------------------------------------------------
-    // 14. Error dLocal
-    // -------------------------------------------------------
 
     if (!dLocalResponse.ok) {
       console.error(
@@ -426,8 +474,7 @@ export async function POST(request: NextRequest) {
             dLocalData?.detail,
 
           response:
-            dLocalData ??
-            rawResponse,
+            dLocalData,
 
           orderId,
         }
@@ -450,19 +497,16 @@ export async function POST(request: NextRequest) {
             dLocalResponse.status,
 
           dlocalCode:
-            dLocalData?.code ??
-            null,
+            dLocalData?.code ?? null,
 
           dlocalParam:
-            dLocalData?.param ??
-            null,
+            dLocalData?.param ?? null,
 
           orderId,
         },
         {
           status:
-            dLocalResponse.status >=
-              400 &&
+            dLocalResponse.status >= 400 &&
             dLocalResponse.status < 600
               ? dLocalResponse.status
               : 502,
@@ -470,42 +514,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // -------------------------------------------------------
-    // 15. Checkout
-    // -------------------------------------------------------
+    const paymentId =
+      dLocalData?.id ??
+      null;
 
-    const checkoutUrl =
-      dLocalData?.redirect_url ||
-      dLocalData?.checkout_url ||
-      dLocalData?.payment_url;
+    const paymentStatus =
+      dLocalData?.status ??
+      "PENDING";
 
-    if (!checkoutUrl) {
-      console.error(
-        "dLocal creó el pago pero no devolvió checkout:",
-        {
-          orderId,
-        }
-      );
+    const redirectUrl =
+      dLocalData?.redirect_url ??
+      dLocalData?.redirect_URL ??
+      dLocalData?.redirectUrl ??
+      null;
 
-      return NextResponse.json(
-        {
-          ok: false,
+    const cardData =
+      dLocalData?.card ??
+      {};
 
-          error:
-            "dLocal creó el pago pero no devolvió una URL de checkout.",
+    const cardId =
+      cardData?.card_id ??
+      dLocalData?.card_id ??
+      null;
 
-          orderId,
-        },
-        { status: 502 }
-      );
-    }
+    const networkTxReference =
+      cardData?.network_tx_reference ??
+      dLocalData?.network_tx_reference ??
+      null;
 
-    // -------------------------------------------------------
-    // 16. Guardar orden pendiente
-    //
-    // NO guardamos datos sensibles de tarjeta.
-    // El card_id llegará desde dLocal después del pago.
-    // -------------------------------------------------------
+    const transactionLinkId =
+      cardData?.transaction_link_id ??
+      dLocalData?.transaction_link_id ??
+      null;
 
     await database
       .ref(
@@ -514,6 +554,9 @@ export async function POST(request: NextRequest) {
       .set({
         order_id:
           orderId,
+
+        payment_id:
+          paymentId,
 
         uid,
 
@@ -536,7 +579,7 @@ export async function POST(request: NextRequest) {
           "dlocal",
 
         status:
-          "PENDING",
+          paymentStatus,
 
         payment_flow:
           "REDIRECT",
@@ -544,23 +587,63 @@ export async function POST(request: NextRequest) {
         save_payment_method:
           true,
 
+        save_payment_method_mode:
+          "unscheduled",
+
+        card_id:
+          cardId,
+
+        network_tx_reference:
+          networkTxReference,
+
+        transaction_link_id:
+          transactionLinkId,
+
+        notification_url:
+          NOTIFICATION_URL,
+
+        callback_url:
+          callbackUrl,
+
+        redirect_url:
+          redirectUrl,
+
         created_at:
           new Date().toISOString(),
       });
 
-    // -------------------------------------------------------
-    // 17. Respuesta
-    // -------------------------------------------------------
+    console.log(
+      "Pago dLocal creado correctamente:",
+      {
+        orderId,
+
+        paymentId,
+
+        status:
+          paymentStatus,
+
+        hasRedirectUrl:
+          Boolean(redirectUrl),
+      }
+    );
 
     return NextResponse.json({
       ok: true,
 
-      checkoutUrl,
-
       orderId,
 
+      paymentId,
+
       status:
-        "PENDING",
+        paymentStatus,
+
+      redirectUrl,
+
+      redirect_url:
+        redirectUrl,
+
+      message:
+        "Pago creado correctamente. Redirigiendo a dLocal Checkout.",
     });
   } catch (error) {
     console.error(
@@ -577,7 +660,9 @@ export async function POST(request: NextRequest) {
             ? error.message
             : "Error interno del servidor.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -600,5 +685,23 @@ export async function GET() {
 
     currency:
       PREMIUM_CURRENCY,
+
+    country:
+      PREMIUM_COUNTRY,
+
+    paymentFlow:
+      "REDIRECT",
+
+    savePaymentMethod:
+      true,
+
+    notificationConfigured:
+      Boolean(NOTIFICATION_URL),
+
+    notificationUrl:
+      NOTIFICATION_URL,
+
+    callbackUrl:
+      `${APP_URL.replace(/\/+$/, "")}/?dlocal=return`,
   });
 }
