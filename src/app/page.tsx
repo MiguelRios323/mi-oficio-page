@@ -1,6 +1,5 @@
 ﻿'use client';
 import { useState, useEffect, FormEvent, useRef, Fragment } from 'react';
-import Script from 'next/script';
 import { jsPDF } from 'jspdf';
 import { initializeApp, getApps } from 'firebase/app';
 import { 
@@ -797,13 +796,9 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
 
   const [showModalPremium, setShowModalPremium] = useState<boolean>(false);
   const [nombreTarjeta, setNombreTarjeta] = useState('');
-  const [dlocalScriptReady, setDlocalScriptReady] = useState(false);
-  const [dlocalReady, setDlocalReady] = useState(false);
   const [errorTarjeta, setErrorTarjeta] = useState('');
   const [procesandoPago, setProcesandoPago] = useState(false);
 
-  const dlocalCardRef = useRef<any>(null);
-  const dlocalInstanceRef = useRef<any>(null);
 
   const mostrarNotificacion = (mensaje: string, tipo: 'success' | 'error' = 'success') => {
     setNotificacion({ mensaje, tipo });
@@ -834,7 +829,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
 
     setNombreTarjeta('');
     setErrorTarjeta('');
-    setDlocalReady(false);
     setShowModalPremium(true);
   };
 
@@ -847,26 +841,16 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
       return;
     }
 
-    if (!dlocalInstanceRef.current || !dlocalCardRef.current) {
-      setErrorTarjeta(
-        'El formulario de tarjeta todavía no está listo.'
-      );
-      return;
-    }
-
     const documentoTitular = (perfilForm.cuit_cuil || '').trim();
     const documentoNumerico = documentoTitular.replace(/\D/g, '');
 
-    if (!documentoTitular || documentoNumerico.length < 7 || documentoNumerico.length > 11) {
+    if (
+      !documentoTitular ||
+      documentoNumerico.length < 7 ||
+      documentoNumerico.length > 11
+    ) {
       setErrorTarjeta(
         'Antes de activar Premium, completá tu CUIT / DNI en Perfil y guardá los datos.'
-      );
-      return;
-    }
-
-    if (!nombreTarjeta.trim()) {
-      setErrorTarjeta(
-        'Ingresá el nombre que figura en la tarjeta.'
       );
       return;
     }
@@ -875,19 +859,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
     setErrorTarjeta('');
 
     try {
-      const result = await dlocalInstanceRef.current.createToken(
-        dlocalCardRef.current,
-        { name: nombreTarjeta.trim() }
-      );
-
-      if (!result?.token) {
-        throw new Error(
-          result?.error?.message ||
-          'dLocal no pudo tokenizar la tarjeta.'
-        );
-      }
-
-      const firebaseToken = await auth.currentUser.getIdToken();
+      const firebaseToken = await auth.currentUser.getIdToken(true);
 
       const response = await fetch('/api/dlocal/create', {
         method: 'POST',
@@ -895,13 +867,11 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
           Authorization: `Bearer ${firebaseToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token: result.token,
-          cuit_cuil: documentoTitular,
-        }),
+        body: JSON.stringify({}),
       });
 
       const responseText = await response.text();
+
       let data: any = {};
 
       try {
@@ -912,109 +882,45 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
         );
       }
 
-      if (!response.ok) {
+      if (!response.ok || data?.ok !== true) {
         throw new Error(
           data?.error ||
           data?.message ||
-          'No se pudo procesar el pago.'
+          'No se pudo crear el checkout de dLocal.'
         );
       }
 
-      setShowModalPremium(false);
-      setNombreTarjeta('');
-      setErrorTarjeta('');
+      const redirectUrl =
+        data?.redirectUrl ||
+        data?.redirect_url ||
+        null;
 
-      mostrarNotificacion(
-        'Pago enviado correctamente. Estamos confirmando tu Premium.',
-        'success'
-      );
+      if (!redirectUrl) {
+        throw new Error(
+          'dLocal creó la orden, pero no devolvió la URL de pago.'
+        );
+      }
+
+      console.log('Checkout Premium creado correctamente:', {
+        orderId: data?.orderId,
+        paymentId: data?.paymentId,
+        status: data?.status,
+        hasRedirectUrl: true,
+      });
+
+      window.location.assign(redirectUrl);
     } catch (error) {
-      console.error('Error en el pago Premium:', error);
+      console.error('Error en el checkout Premium:', error);
+
       setErrorTarjeta(
         error instanceof Error
           ? error.message
-          : 'No se pudo procesar el pago.'
+          : 'No se pudo iniciar el pago Premium.'
       );
     } finally {
       setProcesandoPago(false);
     }
   };
-
-  useEffect(() => {
-    if (!showModalPremium || !dlocalScriptReady) {
-      return;
-    }
-
-    if (!window.dlocal) {
-      setErrorTarjeta(
-        'No se pudo cargar el formulario seguro de dLocal.'
-      );
-      return;
-    }
-
-    const apiKey = process.env.NEXT_PUBLIC_DLOCAL_API_KEY?.trim();
-
-    if (!apiKey) {
-      setErrorTarjeta(
-        'No está configurada la clave pública de dLocal Smart Fields.'
-      );
-      return;
-    }
-
-    let card: any = null;
-
-    try {
-      const dlocal = window.dlocal(apiKey);
-      const fields = dlocal.fields({
-        locale: 'es',
-        country: 'AR',
-      });
-
-      card = fields.create('card', {
-        style: {
-          base: {
-            fontSize: '14px',
-            color: '#0f172a',
-            fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
-          },
-        },
-      });
-
-      const container = document.getElementById('dlocal-card-field');
-
-      if (!container) {
-        throw new Error('No se encontró el contenedor de la tarjeta.');
-      }
-
-      card.mount(container);
-
-      card.on('change', (event: any) => {
-        setErrorTarjeta(event?.error?.message || '');
-      });
-
-      dlocalInstanceRef.current = dlocal;
-      dlocalCardRef.current = card;
-      setDlocalReady(true);
-    } catch (error) {
-      console.error('Error inicializando dLocal Smart Fields:', error);
-      setErrorTarjeta(
-        'No se pudo cargar el formulario seguro de tarjeta.'
-      );
-      setDlocalReady(false);
-    }
-
-    return () => {
-      try {
-        card?.destroy?.();
-      } catch (error) {
-        console.warn('No se pudo destruir el Smart Field:', error);
-      }
-
-      dlocalCardRef.current = null;
-      dlocalInstanceRef.current = null;
-      setDlocalReady(false);
-    };
-  }, [showModalPremium, dlocalScriptReady]);
 
   const [perfilForm, setPerfilForm] = useState<Perfil>({
     nombre: user.name ? `Centro de Servicios de ${user.name}` : 'Mi Empresa / Profesional',
@@ -1783,15 +1689,6 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
 
   return (
     <>
-      <Script
-        src={
-          process.env.NODE_ENV === 'production'
-            ? 'https://js.dlocal.com'
-            : 'https://js-sandbox.dlocal.com'
-        }
-        strategy="afterInteractive"
-        onLoad={() => setDlocalScriptReady(true)}
-      />
 
       <div className="mi-oficio-ui min-h-screen h-screen bg-[#f8fafc] font-sans text-slate-800 flex flex-col lg:flex-row relative selection:bg-blue-600 selection:text-white overflow-hidden">
       <style jsx global>{`
@@ -3295,85 +3192,98 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
           }}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-5 flex items-start justify-between">
+            <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">MiOficio Pro</p>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">Activar Premium</h2>
-                <p className="mt-1 text-sm text-slate-500">Accedé a todas las herramientas Premium.</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600">
+                  MiOficio Pro
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-slate-900">
+                  Activar Premium
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Accedé a todas las herramientas Premium.
+                </p>
               </div>
+
               <button
                 type="button"
                 onClick={() => {
                   if (!procesandoPago) setShowModalPremium(false);
                 }}
-                className="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-lg px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                 aria-label="Cerrar"
               >
                 ×
               </button>
             </div>
 
-            <div className="mb-5 rounded-xl bg-slate-50 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-600">MiOficio Premium</span>
-                <span className="text-lg font-bold text-slate-900">$ 4.999 ARS</span>
+            <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    MiOficio Premium
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Pago seguro procesado por dLocal.
+                  </p>
+                </div>
+                <span className="whitespace-nowrap text-lg font-bold text-slate-900">
+                  $ 4.999 ARS
+                </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="nombre-tarjeta" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Nombre del titular
-                </label>
-                <input
-                  id="nombre-tarjeta"
-                  type="text"
-                  value={nombreTarjeta}
-                  onChange={(event) => setNombreTarjeta(event.target.value)}
-                  placeholder="Nombre que figura en la tarjeta"
-                  disabled={procesandoPago}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:bg-slate-50"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="dlocal-card-field" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Tarjeta
-                </label>
-                <div
-                  id="dlocal-card-field"
-                  className="min-h-[46px] rounded-xl border border-slate-200 bg-white px-3 py-3"
-                />
+            <div className="space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-blue-600">
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 10h18" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700">
+                      Checkout seguro
+                    </p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                      Al continuar, vas a ser dirigido al checkout seguro de dLocal para completar los datos del medio de pago.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {errorTarjeta && (
-                <div role="alert" className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                <div
+                  role="alert"
+                  className="rounded-xl bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-700"
+                >
                   {errorTarjeta}
                 </div>
               )}
 
-              <div className="rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
-                Tus datos de tarjeta se ingresan directamente en los campos seguros de dLocal. MiOficio no almacena el número de tarjeta ni el código de seguridad.
-              </div>
-
-              <p className="text-xs leading-5 text-slate-400">
-                Al continuar, aceptás que dLocal procese los datos necesarios para realizar el pago.
+              <p className="text-[10px] leading-4 text-slate-400">
+                MiOficio no almacena los datos de tu tarjeta. dLocal procesa la información necesaria para realizar el pago.
               </p>
 
               <button
                 type="button"
                 onClick={pagarPremiumConTarjeta}
-                disabled={procesandoPago || !dlocalReady || !nombreTarjeta.trim()}
+                disabled={procesandoPago}
                 className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {procesandoPago
-                  ? 'Procesando pago…'
-                  : !dlocalReady
-                    ? 'Cargando tarjeta…'
-                    : 'Pagar $ 4.999 ARS'}
+                  ? 'Preparando checkout…'
+                  : 'Continuar al pago →'}
               </button>
             </div>
           </div>
