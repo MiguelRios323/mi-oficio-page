@@ -1752,17 +1752,22 @@ useEffect(() => {
         }
 
         .mi-oficio-ui .field {
+          box-sizing: border-box;
+          display: block;
           width: 100%;
-          height: 34px;
-          border: 1px solid #e2e8f0;
-          border-radius: 6px;
+          height: 38px;
+          min-height: 38px;
+          border: 1px solid #dbe2ea;
+          border-radius: 7px;
           background: #fff;
-          padding: 0 10px;
+          padding: 0 12px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
           font-size: 13px !important;
-          line-height: 34px;
-          font-weight: 400;
+          line-height: normal;
+          font-weight: 500;
           color: #0f172a;
+          letter-spacing: 0;
+          appearance: none;
           outline: none;
           transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
         }
@@ -1777,16 +1782,32 @@ useEffect(() => {
           font-weight: 400;
         }
 
+        .mi-oficio-ui .field:disabled,
+        .mi-oficio-ui .field-sm:disabled {
+          color: #64748b;
+          background: #f8fafc;
+          cursor: not-allowed;
+        }
+
+        .mi-oficio-ui input.field:-webkit-autofill,
+        .mi-oficio-ui input.field-sm:-webkit-autofill {
+          -webkit-text-fill-color: #0f172a;
+          transition: background-color 9999s ease-out;
+        }
+
         .mi-oficio-ui .field-sm {
           width: 100%;
-          height: 30px;
-          border: 1px solid #e2e8f0;
-          border-radius: 5px;
+          height: 34px;
+          min-height: 34px;
+          border: 1px solid #dbe2ea;
+          border-radius: 6px;
           background: #fff;
-          padding: 0 8px;
+          padding: 0 10px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 10px !important;
+          font-size: 11px !important;
+          line-height: normal;
           font-weight: 500;
+          letter-spacing: 0;
           color: #0f172a;
           outline: none;
         }
@@ -1905,34 +1926,6 @@ useEffect(() => {
         .budget-generator select:invalid {
           color: #94a3b8 !important;
           font-weight: 400 !important;
-        }
-
-        /* Controles táctiles y legibles en teléfonos. Mantener 16px evita zoom
-           automático de Safari/iOS y mejora la lectura sin agrandar el dashboard. */
-        @media (max-width: 639px) {
-          .mi-oficio-ui .field,
-          .mi-oficio-ui .field-sm,
-          .budget-generator .field,
-          .budget-generator .field-sm,
-          .budget-generator input,
-          .budget-generator select,
-          .budget-generator textarea {
-            font-size: 16px !important;
-            font-weight: 400 !important;
-            line-height: 1.35 !important;
-          }
-
-          .budget-generator .field,
-          .budget-generator .field-sm {
-            min-height: 42px !important;
-            height: 42px !important;
-            line-height: 1.35 !important;
-          }
-
-          .budget-generator textarea.field {
-            min-height: 96px !important;
-            height: auto !important;
-          }
         }
 
         .budget-generator .budget-footer {
@@ -2091,14 +2084,14 @@ useEffect(() => {
             disabled={cargandoPremium}
             className="w-full h-9 px-2.5 rounded-[8px] flex items-center gap-3 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/[0.045] transition disabled:opacity-60 disabled:cursor-wait"
           >
-            <span className={`w-4 h-4 flex items-center justify-center ${perfilForm.es_premium ? 'text-amber-300' : 'text-blue-400'}`}>
+            <span className={`w-4 h-4 flex items-center justify-center ${perfilForm.es_premium ? 'text-amber-300' : 'text-slate-300'}`}>
               {cargandoPremium ? (
                 <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
               ) : (
-                <IconoPanel name="plus" className="w-3.5 h-3.5" />
+                <span className="relative flex h-4 w-4 items-center justify-center"><IconoPanel name="plus" className="w-3.5 h-3.5" />{!perfilForm.es_premium && <span className="absolute -right-1 -top-1 text-[7px]">🔒</span>}</span>
               )}
             </span>
-            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'MiOficio Pro' : 'Activar Premium'}</span>
+            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'MiOficio Pro' : 'Premium bloqueado'}</span>
           </button>
           <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
@@ -3461,9 +3454,9 @@ useEffect(() => {
               <span className="whitespace-nowrap text-[10px] font-semibold">Perfil</span>
             </button>
 
-            <button type="button" onClick={activarPremium} disabled={cargandoPremium} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-blue-500/10 text-blue-300'}`}>
-              {cargandoPremium ? <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" /> : <IconoPanel name="plus" className="h-[19px] w-[19px]" />}
-              <span className="whitespace-nowrap text-[10px] font-semibold">{perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+            <button type="button" onClick={activarPremium} disabled={cargandoPremium} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-700/35 text-slate-300'}`}>
+              {cargandoPremium ? <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" /> : <span className="relative flex h-[19px] w-[19px] items-center justify-center"><IconoPanel name="plus" className="h-[19px] w-[19px]" />{!perfilForm.es_premium && <span className="absolute -right-1 -top-1 text-[8px]">🔒</span>}</span>}
+              <span className="whitespace-nowrap text-[10px] font-semibold">{perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado'}</span>
             </button>
           </div>
         </div>
