@@ -1751,87 +1751,44 @@ useEffect(() => {
           letter-spacing: .06em;
         }
 
-        /* CAMPOS DE DATOS — texto ingresado limpio y cómodo de leer */
-        .mi-oficio-ui .field {
-          display: block;
+        
           width: 100%;
-          min-width: 0;
-          height: 40px;
-          border: 1px solid #d7dee8;
-          border-radius: 9px;
-          background: #ffffff;
-          padding: 0 12px;
-          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 14px !important;
-          line-height: 1.25 !important;
-          font-weight: 500 !important;
-          color: #172033 !important;
-          letter-spacing: 0 !important;
-          outline: none;
-          appearance: none;
-          -webkit-appearance: none;
-          box-sizing: border-box;
-          transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
-        }
-
-        .mi-oficio-ui .field:hover {
-          border-color: #c5cedb;
-        }
-
-        .mi-oficio-ui .field:focus {
-          border-color: #3b82f6;
-          background: #ffffff;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.10);
-        }
-
-        .mi-oficio-ui .field::placeholder {
-          color: #9aa6b5 !important;
-          opacity: 1;
-          font-weight: 400 !important;
-        }
-
-        .mi-oficio-ui select.field {
-          padding-right: 34px;
-          cursor: pointer;
-        }
-
-        .mi-oficio-ui textarea.field {
-          min-height: 92px;
-          height: auto;
-          padding: 11px 12px;
-          line-height: 1.45 !important;
-          resize: vertical;
-        }
-
-        .mi-oficio-ui input.field:-webkit-autofill,
-        .mi-oficio-ui input.field:-webkit-autofill:hover,
-        .mi-oficio-ui input.field:-webkit-autofill:focus {
-          -webkit-text-fill-color: #172033;
-          -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
-          transition: background-color 9999s ease-in-out 0s;
-        }
-
-        .mi-oficio-ui .field-sm {
-          width: 100%;
-          min-width: 0;
-          height: 36px;
-          border: 1px solid #d7dee8;
-          border-radius: 8px;
+          height: 34px;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
           background: #fff;
           padding: 0 10px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
           font-size: 13px !important;
-          line-height: 1.25 !important;
-          font-weight: 500 !important;
-          color: #172033 !important;
+          line-height: 34px;
+          font-weight: 400;
+          color: #0f172a;
           outline: none;
-          box-sizing: border-box;
+          transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
         }
 
-        .mi-oficio-ui .field-sm::placeholder {
-          color: #9aa6b5 !important;
-          opacity: 1;
-          font-weight: 400 !important;
+        .mi-oficio-ui .field:focus {
+          border-color: #93c5fd;
+          box-shadow: 0 0 0 3px rgba(59,130,246,.08);
+        }
+
+        .mi-oficio-ui .field::placeholder {
+          color: #94a3b8;
+          font-weight: 400;
+        }
+
+        .mi-oficio-ui .field-sm {
+          width: 100%;
+          height: 30px;
+          border: 1px solid #e2e8f0;
+          border-radius: 5px;
+          background: #fff;
+          padding: 0 8px;
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          font-size: 10px !important;
+          font-weight: 500;
+          color: #0f172a;
+          outline: none;
         }
 
         .mi-oficio-ui .field-sm:focus {
@@ -1855,6 +1812,10 @@ useEffect(() => {
           .mi-oficio-ui .mobile-item-label {
             display: block;
           }
+        }
+
+        .mi-oficio-ui textarea.field {
+          line-height: 1.45;
         }
 
         .mi-oficio-ui .font-mono {
@@ -2109,7 +2070,7 @@ useEffect(() => {
                 <IconoPanel name="plus" className="w-3.5 h-3.5" />
               )}
             </span>
-            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'MiOficio Pro' : 'Activar Premium'}</span>
           </button>
           <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
@@ -3439,42 +3400,42 @@ useEffect(() => {
         </div>
       )}
 
-      {/* MOBILE NAV — navegación completa */}
+      {/* MOBILE NAV — navegación principal */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
-        <div className="overflow-x-auto overscroll-x-contain">
-          <div className="mx-auto flex min-w-max items-center gap-1 px-2 py-2">
-            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'dashboard' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
-              <IconoPanel name="home" className="h-[19px] w-[19px]" />
-              <span className="whitespace-nowrap text-[10px] font-semibold">Inicio</span>
+        <div className="mx-auto w-full max-w-[560px] px-1.5 pb-[env(safe-area-inset-bottom)]">
+          <div className="grid grid-cols-7 items-center gap-0.5 py-1.5">
+            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'dashboard' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="home" className="h-[18px] w-[18px]" />
+              <span className="truncate text-[9px] font-semibold">Inicio</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'clientes' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
-              <IconoPanel name="clients" className="h-[19px] w-[19px]" />
-              <span className="whitespace-nowrap text-[10px] font-semibold">Clientes</span>
+            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'clientes' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="clients" className="h-[18px] w-[18px]" />
+              <span className="truncate text-[9px] font-semibold">Clientes</span>
             </button>
 
-            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-11 min-w-[48px] shrink-0 items-center justify-center rounded-xl bg-blue-600 px-3 text-white shadow-[0_6px_18px_rgba(37,99,235,.28)] transition hover:bg-blue-700">
+            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_6px_18px_rgba(37,99,235,.28)] transition hover:bg-blue-700">
               <IconoPanel name="plus" className="h-5 w-5" />
             </button>
 
-            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex h-14 min-w-[88px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
-              <IconoPanel name="quotes" className="h-[19px] w-[19px]" />
-              <span className="whitespace-nowrap text-[10px] font-semibold">Presupuestos</span>
+            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="quotes" className="h-[18px] w-[18px]" />
+              <span className="truncate text-[9px] font-semibold">Presupuestos</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'configuracion' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
-              <IconoPanel name="settings" className="h-[19px] w-[19px]" />
-              <span className="whitespace-nowrap text-[10px] font-semibold">Configuración</span>
+            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'configuracion' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="settings" className="h-[18px] w-[18px]" />
+              <span className="truncate text-[9px] font-semibold">Configuración</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'perfil' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
-              <IconoPanel name="profile" className="h-[19px] w-[19px]" />
-              <span className="whitespace-nowrap text-[10px] font-semibold">Perfil</span>
+            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'perfil' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="profile" className="h-[18px] w-[18px]" />
+              <span className="truncate text-[9px] font-semibold">Perfil</span>
             </button>
 
-            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`relative flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-700/45 text-slate-300'}`}>
+            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'text-slate-400'}`}>
               {cargandoPremium ? (
-                <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : perfilForm.es_premium ? (
                 <span className="text-[18px] leading-none">★</span>
               ) : (
@@ -3483,7 +3444,7 @@ useEffect(() => {
                   <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                 </svg>
               )}
-              <span className="whitespace-nowrap text-[10px] font-semibold">{perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+              <span className="truncate text-[9px] font-semibold">Premium</span>
             </button>
           </div>
         </div>
