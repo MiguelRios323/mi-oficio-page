@@ -795,6 +795,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   const [cargandoPremium, setCargandoPremium] = useState(false);
 
   const [showModalPremium, setShowModalPremium] = useState<boolean>(false);
+  const [planPremium, setPlanPremium] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [nombreTarjeta, setNombreTarjeta] = useState('');
   const [errorTarjeta, setErrorTarjeta] = useState('');
   const [procesandoPago, setProcesandoPago] = useState(false);
@@ -1758,9 +1759,9 @@ useEffect(() => {
           background: #fff;
           padding: 0 10px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 11px !important;
+          font-size: 13px !important;
           line-height: 34px;
-          font-weight: 500;
+          font-weight: 400;
           color: #0f172a;
           outline: none;
           transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
@@ -1906,6 +1907,34 @@ useEffect(() => {
           font-weight: 400 !important;
         }
 
+        /* Controles táctiles y legibles en teléfonos. Mantener 16px evita zoom
+           automático de Safari/iOS y mejora la lectura sin agrandar el dashboard. */
+        @media (max-width: 639px) {
+          .mi-oficio-ui .field,
+          .mi-oficio-ui .field-sm,
+          .budget-generator .field,
+          .budget-generator .field-sm,
+          .budget-generator input,
+          .budget-generator select,
+          .budget-generator textarea {
+            font-size: 16px !important;
+            font-weight: 400 !important;
+            line-height: 1.35 !important;
+          }
+
+          .budget-generator .field,
+          .budget-generator .field-sm {
+            min-height: 42px !important;
+            height: 42px !important;
+            line-height: 1.35 !important;
+          }
+
+          .budget-generator textarea.field {
+            min-height: 96px !important;
+            height: auto !important;
+          }
+        }
+
         .budget-generator .budget-footer {
           min-height: 64px;
           padding: 0 18px;
@@ -1976,6 +2005,25 @@ useEffect(() => {
           }
           .budget-generator .budget-actions {
             width: 100%;
+          }
+        }
+
+        .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
+        .mi-oficio-ui select,
+        .mi-oficio-ui textarea {
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          font-size: 16px !important;
+          line-height: 1.4 !important;
+          font-weight: 400 !important;
+          letter-spacing: 0 !important;
+          font-variant-numeric: normal !important;
+        }
+
+        @media (min-width: 640px) {
+          .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
+          .mi-oficio-ui select,
+          .mi-oficio-ui textarea {
+            font-size: 13px !important;
           }
         }
 
@@ -2060,16 +2108,9 @@ useEffect(() => {
         </div>
       </aside>
 
-      {/* MOBILE NAV */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-[62px] bg-[#08111f]/98 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-2">
-        <button aria-label="Inicio" onClick={() => setActiveTab('dashboard')} className={`w-16 h-11 rounded-lg flex flex-col items-center justify-center gap-0.5 ${activeTab==='dashboard'?'text-blue-400 bg-blue-500/10':'text-slate-500'}`}><IconoPanel name="home" className="w-[18px] h-[18px]" /><span className="text-[8px] font-semibold">Inicio</span></button>
-        <button aria-label="Clientes" onClick={() => setActiveTab('clientes')} className={`w-16 h-11 rounded-lg flex flex-col items-center justify-center gap-0.5 ${activeTab==='clientes'?'text-blue-400 bg-blue-500/10':'text-slate-500'}`}><IconoPanel name="clients" className="w-[18px] h-[18px]" /><span className="text-[8px] font-semibold">Clientes</span></button>
-        <button aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="w-10 h-10 rounded-lg bg-blue-600 text-white shadow-md flex items-center justify-center"><IconoPanel name="plus" className="w-[18px] h-[18px]" /></button>
-        <button aria-label="Presupuestos" onClick={() => setActiveTab('presupuestos')} className={`w-16 h-11 rounded-lg flex flex-col items-center justify-center gap-0.5 ${activeTab==='presupuestos'?'text-blue-400 bg-blue-500/10':'text-slate-500'}`}><IconoPanel name="quotes" className="w-[18px] h-[18px]" /><span className="text-[8px] font-semibold">Presupuestos</span></button>
-         <button aria-label="Perfil profesional" onClick={() => setActiveTab('perfil')} className={`w-16 h-11 rounded-lg flex flex-col items-center justify-center gap-0.5 ${activeTab==='perfil'?'text-blue-400 bg-blue-500/10':'text-slate-500'}`}><IconoPanel name="profile" className="w-[18px] h-[18px]" /><span className="text-[8px] font-semibold">Perfil profesional</span></button>
-      </nav>
+     
 
-      <main className="flex-1 min-w-0 min-h-0 bg-[#f5f7fb] overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 min-w-0 min-h-0 bg-[#f5f7fb] overflow-y-auto overflow-x-hidden pb-[78px] lg:pb-0">
         <header className="h-[56px] sm:h-[58px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
@@ -3271,22 +3312,68 @@ useEffect(() => {
               </button>
             </div>
 
-            <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    MiOficio Premium
-                  </p>
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    Pago seguro procesado por dLocal.
-                  </p>
-                </div>
-                <span className="whitespace-nowrap text-lg font-bold text-slate-900">
-                  $ 4.999 ARS
-                </span>
-              </div>
-            </div>
+            <div className="mb-4 space-y-3">
+  <p className="text-xs font-semibold text-slate-700">
+    Elegí tu plan Premium
+  </p>
 
+  <div className="grid grid-cols-2 gap-2">
+    {[
+      { id: 'daily', label: 'Diario', price: '$ 399', duration: '1 día' },
+      { id: 'weekly', label: 'Semanal', price: '$ 2.799', duration: '7 días' },
+      { id: 'monthly', label: 'Mensual', price: '$ 11.999', duration: '30 días' },
+      { id: 'yearly', label: 'Anual', price: '$ 139.999', duration: '365 días' },
+    ].map((plan) => (
+      <button
+        key={plan.id}
+        type="button"
+        onClick={() =>
+          setPlanPremium(
+            plan.id as 'daily' | 'weekly' | 'monthly' | 'yearly'
+          )
+        }
+        className={`rounded-xl border p-3 text-left transition ${
+          planPremium === plan.id
+            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+            : 'border-slate-200 bg-white hover:border-blue-300'
+        }`}
+      >
+        <p className="text-xs font-semibold text-slate-800">
+          {plan.label}
+        </p>
+        <p className="mt-1 text-base font-bold text-slate-900">
+          {plan.price} ARS
+        </p>
+        <p className="mt-0.5 text-[10px] text-slate-500">
+          {plan.duration}
+        </p>
+      </button>
+    ))}
+  </div>
+
+  <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-sm font-semibold text-slate-800">
+          MiOficio Premium
+        </p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Pago seguro procesado por dLocal.
+        </p>
+      </div>
+
+      <span className="whitespace-nowrap text-lg font-bold text-slate-900">
+        {planPremium === 'daily'
+          ? '$ 399 ARS'
+          : planPremium === 'weekly'
+            ? '$ 2.799 ARS'
+            : planPremium === 'yearly'
+              ? '$ 139.999 ARS'
+              : '$ 11.999 ARS'}
+      </span>
+    </div>
+  </div>
+</div>
             <div className="space-y-3">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-3">
@@ -3340,6 +3427,47 @@ useEffect(() => {
           </div>
         </div>
       )}
+
+      {/* MOBILE NAV — navegación completa */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
+        <div className="overflow-x-auto overscroll-x-contain">
+          <div className="mx-auto flex min-w-max items-center gap-1 px-2 py-2">
+            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'dashboard' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
+              <IconoPanel name="home" className="h-[19px] w-[19px]" />
+              <span className="whitespace-nowrap text-[10px] font-semibold">Inicio</span>
+            </button>
+
+            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'clientes' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
+              <IconoPanel name="clients" className="h-[19px] w-[19px]" />
+              <span className="whitespace-nowrap text-[10px] font-semibold">Clientes</span>
+            </button>
+
+            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-11 min-w-[48px] shrink-0 items-center justify-center rounded-xl bg-blue-600 px-3 text-white shadow-[0_6px_18px_rgba(37,99,235,.28)] transition hover:bg-blue-700">
+              <IconoPanel name="plus" className="h-5 w-5" />
+            </button>
+
+            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex h-14 min-w-[88px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
+              <IconoPanel name="quotes" className="h-[19px] w-[19px]" />
+              <span className="whitespace-nowrap text-[10px] font-semibold">Presupuestos</span>
+            </button>
+
+            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'configuracion' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
+              <IconoPanel name="settings" className="h-[19px] w-[19px]" />
+              <span className="whitespace-nowrap text-[10px] font-semibold">Configuración</span>
+            </button>
+
+            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex h-14 min-w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition ${activeTab === 'perfil' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400 hover:text-white'}`}>
+              <IconoPanel name="profile" className="h-[19px] w-[19px]" />
+              <span className="whitespace-nowrap text-[10px] font-semibold">Perfil</span>
+            </button>
+
+            <button type="button" onClick={activarPremium} disabled={cargandoPremium} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-blue-500/10 text-blue-300'}`}>
+              {cargandoPremium ? <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" /> : <IconoPanel name="plus" className="h-[19px] w-[19px]" />}
+              <span className="whitespace-nowrap text-[10px] font-semibold">{perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+            </button>
+          </div>
+        </div>
+      </nav>
 
     </div>
     </>
