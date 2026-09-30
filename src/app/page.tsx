@@ -3400,51 +3400,53 @@ useEffect(() => {
         </div>
       )}
 
-      {/* MOBILE NAV — navegación principal */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
-        <div className="mx-auto w-full max-w-[560px] px-1.5 pb-[env(safe-area-inset-bottom)]">
-          <div className="grid grid-cols-7 items-center gap-0.5 py-1.5">
-            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'dashboard' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="home" className="h-[18px] w-[18px]" />
-              <span className="truncate text-[9px] font-semibold">Inicio</span>
+      {/* MOBILE NAV — 7 accesos, espaciados y sin desplazamiento horizontal */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]">
+        <div className="mx-auto w-full max-w-[520px] px-1.5 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-7 items-stretch gap-1">
+            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'dashboard' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="home" className="h-[20px] w-[20px] shrink-0" />
+              <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Inicio</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'clientes' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="clients" className="h-[18px] w-[18px]" />
-              <span className="truncate text-[9px] font-semibold">Clientes</span>
+            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'clientes' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="clients" className="h-[20px] w-[20px] shrink-0" />
+              <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Clientes</span>
             </button>
 
-            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_6px_18px_rgba(37,99,235,.28)] transition hover:bg-blue-700">
-              <IconoPanel name="plus" className="h-5 w-5" />
+            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex min-w-0 h-[58px] items-center justify-center rounded-xl px-1 transition">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-[0_6px_18px_rgba(37,99,235,.32)]">
+                <IconoPanel name="plus" className="h-5 w-5" />
+              </span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="quotes" className="h-[18px] w-[18px]" />
-              <span className="truncate text-[9px] font-semibold">Presupuestos</span>
+            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="quotes" className="h-[20px] w-[20px] shrink-0" />
+              <span className="w-full text-center text-[8.5px] font-semibold leading-[10px]">Presupuestos</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'configuracion' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="settings" className="h-[18px] w-[18px]" />
-              <span className="truncate text-[9px] font-semibold">Configuración</span>
+            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition ${activeTab === 'configuracion' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="settings" className="h-[20px] w-[20px] shrink-0" />
+              <span className="w-full text-center text-[8px] font-semibold leading-[9px]">Configuración</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'perfil' ? 'bg-blue-500/12 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="profile" className="h-[18px] w-[18px]" />
-              <span className="truncate text-[9px] font-semibold">Perfil</span>
+            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'perfil' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="profile" className="h-[20px] w-[20px] shrink-0" />
+              <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Perfil</span>
             </button>
 
-            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`flex min-w-0 h-14 flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'text-slate-400'}`}>
+            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-700/45 text-slate-300'}`}>
               {cargandoPremium ? (
-                <span className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span className="h-[20px] w-[20px] animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : perfilForm.es_premium ? (
-                <span className="text-[18px] leading-none">★</span>
+                <span className="text-[19px] leading-none">★</span>
               ) : (
-                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg className="h-[19px] w-[19px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <rect x="5" y="10" width="14" height="10" rx="2" />
                   <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                 </svg>
               )}
-              <span className="truncate text-[9px] font-semibold">Premium</span>
+              <span className="w-full text-center text-[8.5px] font-semibold leading-[10px]">{perfilForm.es_premium ? 'Premium' : 'Premium'}</span>
             </button>
           </div>
         </div>
