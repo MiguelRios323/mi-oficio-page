@@ -1980,15 +1980,54 @@ useEffect(() => {
           }
         }
 
+        /* FORMULARIOS — tipografía y controles consistentes */
         .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
         .mi-oficio-ui select,
-        .mi-oficio-ui textarea {
+        .mi-oficio-ui textarea,
+        .budget-generator input:not([type='checkbox']):not([type='radio']),
+        .budget-generator select,
+        .budget-generator textarea {
+          box-sizing: border-box !important;
+          width: 100%;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 16px !important;
-          line-height: 1.4 !important;
-          font-weight: 400 !important;
+          font-size: 15px !important;
+          line-height: 1.35 !important;
+          font-weight: 450 !important;
           letter-spacing: 0 !important;
           font-variant-numeric: normal !important;
+          color: #0f172a !important;
+          -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
+        .mi-oficio-ui select {
+          min-height: 42px !important;
+          padding: 0 12px !important;
+          border-radius: 10px !important;
+        }
+
+        .mi-oficio-ui textarea {
+          min-height: 92px !important;
+          padding: 11px 12px !important;
+          resize: vertical;
+        }
+
+        .mi-oficio-ui input::placeholder,
+        .mi-oficio-ui textarea::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+          font-weight: 400 !important;
+        }
+
+        .mi-oficio-ui input:focus,
+        .mi-oficio-ui select:focus,
+        .mi-oficio-ui textarea:focus {
+          outline: none !important;
+          border-color: rgba(37, 99, 235, .48) !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, .09) !important;
         }
 
         @media (min-width: 640px) {
@@ -1997,10 +2036,25 @@ useEffect(() => {
           .mi-oficio-ui textarea {
             font-size: 13px !important;
           }
+          .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
+          .mi-oficio-ui select {
+            min-height: 38px !important;
+            padding-left: 11px !important;
+            padding-right: 11px !important;
+            border-radius: 8px !important;
+          }
+          .mi-oficio-ui textarea {
+            min-height: 84px !important;
+            padding: 10px 11px !important;
+          }
         }
 
-        input, select, textarea { font-size: 16px !important; }
-        @media (min-width: 640px) { input, select, textarea { font-size: 12px !important; } }
+        /* Evita que estilos globales del navegador vuelvan a agrandar los campos. */
+        input:not([type='checkbox']):not([type='radio']), select, textarea {
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+        }
         ::-webkit-scrollbar {
           display: none;
           width: 0px;
@@ -2048,7 +2102,7 @@ useEffect(() => {
               {presupuestos.length > 0 && <span className="min-w-5 h-4.5 px-1.5 rounded-md bg-white/10 text-[10px] text-slate-300 flex items-center justify-center">{presupuestos.length}</span>}
             </button>
             <button onClick={() => setActiveTab('configuracion')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'configuracion' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
-              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="settings" className="w-4 h-4" /></span><span>Configuración comercial</span>
+              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="settings" className="w-4 h-4" /></span><span>Configuración</span>
             </button>
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
               <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
@@ -2086,8 +2140,21 @@ useEffect(() => {
         <header className="h-[56px] sm:h-[58px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
-            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración comercial' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
+            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
             <div className="hidden md:flex w-[210px] xl:w-[260px] h-8 rounded-lg bg-slate-50 border border-slate-200 items-center gap-2.5 px-3.5 ml-3"><IconoPanel name="search" className="w-4 h-4 text-slate-400 shrink-0" /><input className="w-full bg-transparent outline-none text-[11px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar en MiOficio..." /></div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={activarPremium}
+              disabled={cargandoPremium}
+              aria-label={perfilForm.es_premium ? 'MiOficio Premium activo' : 'Activar MiOficio Premium'}
+              title={perfilForm.es_premium ? 'MiOficio Premium activo' : 'Activar MiOficio Premium'}
+              className={`h-8 rounded-lg border px-2.5 flex items-center gap-1.5 text-[9px] font-extrabold transition ${perfilForm.es_premium ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-700'} disabled:opacity-60`}
+            >
+              {cargandoPremium ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <span className="text-[12px] leading-none">✦</span>}
+              <span className="hidden sm:inline">{perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+            </button>
           </div>
           {activeTab === 'dashboard' && (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -3400,53 +3467,34 @@ useEffect(() => {
         </div>
       )}
 
-      {/* MOBILE NAV — 7 accesos, espaciados y sin desplazamiento horizontal */}
+      {/* MOBILE NAV — 5 acciones principales; Premium vive en la cabecera */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]">
-        <div className="mx-auto w-full max-w-[520px] px-1.5 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))]">
-          <div className="grid grid-cols-7 items-stretch gap-1">
-            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'dashboard' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="home" className="h-[20px] w-[20px] shrink-0" />
+        <div className="mx-auto w-full max-w-[520px] px-2 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-5 items-stretch gap-1.5">
+            <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'dashboard' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="home" className="h-[19px] w-[19px] shrink-0" />
               <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Inicio</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'clientes' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="clients" className="h-[20px] w-[20px] shrink-0" />
+            <button type="button" onClick={() => setActiveTab('clientes')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'clientes' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="clients" className="h-[19px] w-[19px] shrink-0" />
               <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Clientes</span>
             </button>
 
-            <button type="button" aria-label="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex min-w-0 h-[58px] items-center justify-center rounded-xl px-1 transition">
+            <button type="button" aria-label="Nuevo presupuesto" title="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex min-w-0 h-[58px] items-center justify-center rounded-xl px-1 transition">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-[0_6px_18px_rgba(37,99,235,.32)]">
                 <IconoPanel name="plus" className="h-5 w-5" />
               </span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="quotes" className="h-[20px] w-[20px] shrink-0" />
-              <span className="w-full text-center text-[8.5px] font-semibold leading-[10px]">Presupuestos</span>
+            <button type="button" onClick={() => setActiveTab('presupuestos')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'presupuestos' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="quotes" className="h-[19px] w-[19px] shrink-0" />
+              <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Presupuestos</span>
             </button>
 
-            <button type="button" onClick={() => setActiveTab('configuracion')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition ${activeTab === 'configuracion' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="settings" className="h-[20px] w-[20px] shrink-0" />
-              <span className="w-full text-center text-[8px] font-semibold leading-[9px]">Configuración</span>
-            </button>
-
-            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-0.5 transition ${activeTab === 'perfil' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
-              <IconoPanel name="profile" className="h-[20px] w-[20px] shrink-0" />
+            <button type="button" onClick={() => setActiveTab('perfil')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'perfil' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
+              <IconoPanel name="profile" className="h-[19px] w-[19px] shrink-0" />
               <span className="w-full text-center text-[9px] font-semibold leading-[10px]">Perfil</span>
-            </button>
-
-            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-700/45 text-slate-300'}`}>
-              {cargandoPremium ? (
-                <span className="h-[20px] w-[20px] animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : perfilForm.es_premium ? (
-                <span className="text-[19px] leading-none">★</span>
-              ) : (
-                <svg className="h-[19px] w-[19px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <rect x="5" y="10" width="14" height="10" rx="2" />
-                  <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                </svg>
-              )}
-              <span className="w-full text-center text-[8.5px] font-semibold leading-[10px]">{perfilForm.es_premium ? 'Premium' : 'Premium'}</span>
             </button>
           </div>
         </div>
