@@ -1751,50 +1751,87 @@ useEffect(() => {
           letter-spacing: .06em;
         }
 
-        /* CAMPOS PRINCIPALES — regla única y explícita */
+        /* CAMPOS DE DATOS — texto ingresado limpio y cómodo de leer */
         .mi-oficio-ui .field {
-          box-sizing: border-box !important;
-          display: block !important;
-          width: 100% !important;
-          height: 36px !important;
-          min-height: 36px !important;
-          border: 1px solid #dbe2ea !important;
-          border-radius: 7px !important;
-          background: #ffffff !important;
-          padding: 0 11px !important;
+          display: block;
+          width: 100%;
+          min-width: 0;
+          height: 40px;
+          border: 1px solid #d7dee8;
+          border-radius: 9px;
+          background: #ffffff;
+          padding: 0 12px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 13px !important;
-          line-height: 36px !important;
+          font-size: 14px !important;
+          line-height: 1.25 !important;
           font-weight: 500 !important;
-          color: #0f172a !important;
+          color: #172033 !important;
           letter-spacing: 0 !important;
-          outline: none !important;
+          outline: none;
+          appearance: none;
+          -webkit-appearance: none;
+          box-sizing: border-box;
           transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
         }
 
-        .mi-oficio-ui .field:focus {
+        .mi-oficio-ui .field:hover {
+          border-color: #c5cedb;
+        }
 
-          border-color: #93c5fd;
-          box-shadow: 0 0 0 3px rgba(59,130,246,.08);
+        .mi-oficio-ui .field:focus {
+          border-color: #3b82f6;
+          background: #ffffff;
+          box-shadow: 0 0 0 3px rgba(59,130,246,.10);
         }
 
         .mi-oficio-ui .field::placeholder {
-          color: #94a3b8;
-          font-weight: 400;
+          color: #9aa6b5 !important;
+          opacity: 1;
+          font-weight: 400 !important;
+        }
+
+        .mi-oficio-ui select.field {
+          padding-right: 34px;
+          cursor: pointer;
+        }
+
+        .mi-oficio-ui textarea.field {
+          min-height: 92px;
+          height: auto;
+          padding: 11px 12px;
+          line-height: 1.45 !important;
+          resize: vertical;
+        }
+
+        .mi-oficio-ui input.field:-webkit-autofill,
+        .mi-oficio-ui input.field:-webkit-autofill:hover,
+        .mi-oficio-ui input.field:-webkit-autofill:focus {
+          -webkit-text-fill-color: #172033;
+          -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+          transition: background-color 9999s ease-in-out 0s;
         }
 
         .mi-oficio-ui .field-sm {
           width: 100%;
-          height: 30px;
-          border: 1px solid #e2e8f0;
-          border-radius: 5px;
+          min-width: 0;
+          height: 36px;
+          border: 1px solid #d7dee8;
+          border-radius: 8px;
           background: #fff;
-          padding: 0 8px;
+          padding: 0 10px;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 10px !important;
-          font-weight: 500;
-          color: #0f172a;
+          font-size: 13px !important;
+          line-height: 1.25 !important;
+          font-weight: 500 !important;
+          color: #172033 !important;
           outline: none;
+          box-sizing: border-box;
+        }
+
+        .mi-oficio-ui .field-sm::placeholder {
+          color: #9aa6b5 !important;
+          opacity: 1;
+          font-weight: 400 !important;
         }
 
         .mi-oficio-ui .field-sm:focus {
@@ -1818,10 +1855,6 @@ useEffect(() => {
           .mi-oficio-ui .mobile-item-label {
             display: block;
           }
-        }
-
-        .mi-oficio-ui textarea.field {
-          line-height: 1.45;
         }
 
         .mi-oficio-ui .font-mono {
@@ -1986,34 +2019,27 @@ useEffect(() => {
           }
         }
 
-        /* CONTROLES NATIVOS — evita que reglas globales vuelvan a agrandar o deformar el texto */
         .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
         .mi-oficio-ui select,
         .mi-oficio-ui textarea {
-          box-sizing: border-box !important;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 13px !important;
-          line-height: 1.35 !important;
-          font-weight: 500 !important;
+          font-size: 16px !important;
+          line-height: 1.4 !important;
+          font-weight: 400 !important;
           letter-spacing: 0 !important;
           font-variant-numeric: normal !important;
-          color: #0f172a !important;
         }
 
-        .mi-oficio-ui input:not([type='checkbox']):not([type='radio'])::placeholder,
-        .mi-oficio-ui textarea::placeholder {
-          color: #94a3b8 !important;
-          font-weight: 400 !important;
-          opacity: 1 !important;
-        }
-
-        @media (max-width: 639px) {
+        @media (min-width: 640px) {
           .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
           .mi-oficio-ui select,
           .mi-oficio-ui textarea {
-            font-size: 14px !important;
+            font-size: 13px !important;
           }
         }
+
+        input, select, textarea { font-size: 16px !important; }
+        @media (min-width: 640px) { input, select, textarea { font-size: 12px !important; } }
         ::-webkit-scrollbar {
           display: none;
           width: 0px;
@@ -2066,24 +2092,25 @@ useEffect(() => {
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
               <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
             </button>
-            <button
-              type="button"
-              onClick={activarPremium}
-              disabled={cargandoPremium}
-              className={`mt-2 w-full min-h-[52px] rounded-xl border px-3 py-2 flex items-center gap-3 text-left transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'border-amber-300/25 bg-amber-400/[0.10] text-amber-200' : 'border-blue-400/20 bg-blue-500/[0.08] text-white hover:bg-blue-500/[0.13]'}`}
-            >
-              <span className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${perfilForm.es_premium ? 'bg-amber-400/15 text-amber-300' : 'bg-blue-500/15 text-blue-300'}`}>
-                {cargandoPremium ? <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" /> : <span className="text-base">{perfilForm.es_premium ? '★' : '🔒'}</span>}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[11px] font-bold">{perfilForm.es_premium ? 'MiOficio Premium' : 'Activar Premium'}</span>
-                <span className={`block mt-0.5 text-[9px] ${perfilForm.es_premium ? 'text-amber-200/70' : 'text-slate-400'}`}>{perfilForm.es_premium ? 'Herramientas desbloqueadas' : 'Funciones bloqueadas hasta pagar'}</span>
-              </span>
-            </button>
           </nav>
         </div>
 
         <div className="px-3 py-3 border-t border-white/[0.06]">
+          <button
+            type="button"
+            onClick={activarPremium}
+            disabled={cargandoPremium}
+            className="w-full h-9 px-2.5 rounded-[8px] flex items-center gap-3 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/[0.045] transition disabled:opacity-60 disabled:cursor-wait"
+          >
+            <span className={`w-4 h-4 flex items-center justify-center ${perfilForm.es_premium ? 'text-amber-300' : 'text-blue-400'}`}>
+              {cargandoPremium ? (
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+              ) : (
+                <IconoPanel name="plus" className="w-3.5 h-3.5" />
+              )}
+            </span>
+            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+          </button>
           <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
             <div className="min-w-0 flex-1"><div className="text-[11px] font-bold truncate">{user.name}</div><div className="text-[9px] text-slate-500 truncate">{user.email}</div></div>
@@ -2513,7 +2540,7 @@ useEffect(() => {
                 {[
                   { title:'Logotipo profesional', description:'Personalizá el logotipo de tus presupuestos.', icon:'identity' as const, premium:true, action:() => { if (perfilForm.es_premium) setShowModalIdentidad(true); else mostrarNotificacion('El logotipo profesional es una función Premium.', 'error'); } },
                   { title:'Medios de cobro', description:'Formas de cobro y datos de pago para tus clientes.', icon:'payments' as const, action:() => setShowModalCobros(true) },
-                  { title:'Numeración y series', description:'Serie, año y próximo número de tus presupuestos.', icon:'series' as const, premium:true, action:() => { if (perfilForm.es_premium) setConfigComercialActiva('series'); else mostrarNotificacion('Esta función está bloqueada. Activá MiOficio Premium.', 'error'); } }
+                  { title:'Numeración y series', description:'Serie, año y próximo número de tus presupuestos.', icon:'series' as const, premium:true, action:() => setConfigComercialActiva('series') }
                 ].map((item) => (
                   <button key={item.title} type="button" onClick={item.action} className="group min-h-[142px] text-left rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,.06)] focus:outline-none focus:ring-2 focus:ring-blue-500/15">
                     <div className="flex items-start justify-between gap-3">
@@ -3445,8 +3472,17 @@ useEffect(() => {
               <span className="whitespace-nowrap text-[10px] font-semibold">Perfil</span>
             </button>
 
-            <button type="button" onClick={activarPremium} disabled={cargandoPremium} className={`flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-blue-500/10 text-blue-300'}`}>
-              {cargandoPremium ? <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" /> : <IconoPanel name="plus" className="h-[19px] w-[19px]" />}
+            <button type="button" onClick={activarPremium} disabled={cargandoPremium} aria-label={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} title={perfilForm.es_premium ? 'Premium activo' : 'Premium bloqueado hasta completar el pago'} className={`relative flex h-14 min-w-[92px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 transition disabled:cursor-wait disabled:opacity-60 ${perfilForm.es_premium ? 'bg-amber-400/10 text-amber-300' : 'bg-slate-700/45 text-slate-300'}`}>
+              {cargandoPremium ? (
+                <span className="h-[19px] w-[19px] animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : perfilForm.es_premium ? (
+                <span className="text-[18px] leading-none">★</span>
+              ) : (
+                <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                  <rect x="5" y="10" width="14" height="10" rx="2" />
+                  <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                </svg>
+              )}
               <span className="whitespace-nowrap text-[10px] font-semibold">{perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
             </button>
           </div>
