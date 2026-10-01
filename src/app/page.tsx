@@ -207,12 +207,12 @@ const LISTA_RUBROS_ARGENTINA = [
   'Particular / Independiente Informal'
 ];
 
-const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', 'Rechazado', 'Vencido', 'Pagado'] as const;
+const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'Aceptado', 'Pagado'] as const;
 
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'; className?: string }) {
+function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'|'sparkles'; className?: string }) {
   const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
   switch (name) {
     case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
@@ -226,6 +226,7 @@ function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'q
     case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
     case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
     case 'series': return <svg {...common}><path d="M7 4v16M17 4v16M4 7h6M14 7h6M4 17h6M14 17h6"/></svg>;
+    case 'sparkles': return <svg {...common}><path d="m12 3 1.55 5.45L19 10l-5.45 1.55L12 17l-1.55-5.45L5 10l5.45-1.55L12 3Z"/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg>;
   }
 }
 
@@ -822,10 +823,7 @@ function DashboardFrontend({ user, onLogout }: { user: { uid: string; name: stri
   console.log("PERFIL ACTUAL:", perfilForm);
 
   if (perfilForm.es_premium) {
-      mostrarNotificacion(
-        'Tu cuenta ya tiene MiOficio Premium activo.',
-        'success'
-      );
+      setActiveTab('premium');
       return;
     }
 
@@ -2184,9 +2182,6 @@ useEffect(() => {
               <span className="flex-1 text-left">Presupuestos</span>
               {presupuestos.length > 0 && <span className="min-w-5 h-4.5 px-1.5 rounded-md bg-white/10 text-[10px] text-slate-300 flex items-center justify-center">{presupuestos.length}</span>}
             </button>
-            <button onClick={() => setActiveTab('configuracion')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'configuracion' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
-              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="settings" className="w-4 h-4" /></span><span>Configuración</span>
-            </button>
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
               <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
             </button>
@@ -2196,7 +2191,7 @@ useEffect(() => {
         <div className="px-3 py-3 border-t border-white/[0.06]">
           <button
             type="button"
-            onClick={activarPremium}
+            onClick={() => (perfilForm.es_premium ? setActiveTab('premium') : activarPremium())}
             disabled={cargandoPremium}
             className="w-full h-9 px-2.5 rounded-[8px] flex items-center gap-3 text-[11px] font-semibold text-slate-400 hover:text-white hover:bg-white/[0.045] transition disabled:opacity-60 disabled:cursor-wait"
           >
@@ -2226,7 +2221,7 @@ useEffect(() => {
         <header className="h-[56px] sm:h-[58px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
-            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
+            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'premium' ? 'Premium' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
             <div className="hidden md:flex w-[210px] xl:w-[260px] h-8 rounded-lg bg-slate-50 border border-slate-200 items-center gap-2.5 px-3.5 ml-3"><IconoPanel name="search" className="w-4 h-4 text-slate-400 shrink-0" /><input className="w-full bg-transparent outline-none text-[11px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar en MiOficio..." /></div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
@@ -2416,44 +2411,39 @@ useEffect(() => {
               <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
                 <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 inline-flex items-center justify-center shrink-0">
-                          <IconoPanel name="quotes" className="w-4 h-4" />
-                        </span>
-                        <div>
-                          <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-600">Gestión comercial</p>
-                          <h2 className="mt-0.5 text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Presupuestos</h2>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-[10px] text-slate-400">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
+                    <div>
+                      <h2 className="text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Presupuestos</h2>
+                      <p className="mt-1 text-[10px] text-slate-400">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
                     </div>
-                  </div>
+</div>
 
                   <div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 min-w-0">
-                      {['Emitido','Enviado','Aceptado','Pagado'].map(estado => {
-                        const activo = filtroEstadoPresupuesto === estado;
-                        return (
-                          <button
-                            key={estado}
-                            type="button"
-                            onClick={() => {
-                              setFiltroEstadoPresupuesto(activo ? 'Todos' : estado);
-                              setPaginaPresupuestos(1);
-                            }}
-                            aria-pressed={activo}
-                            aria-label={`Filtrar presupuestos por ${estado}`}
-                            className={`h-8 px-2.5 rounded-lg text-[9px] font-bold whitespace-nowrap border transition inline-flex items-center gap-1.5 shrink-0 ${activo ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700'}`}
-                          >
-                            <IconoEstadoPresupuesto estado={estado} className="w-3.5 h-3.5" />
-                            <span>{estado}</span>
-                          </button>
-                        );
-                      })}
+                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+                      {[
+                        { key: 'Emitido', label: 'Emitido', path: 'M12 4v8' },
+                        { key: 'Enviado', label: 'Enviado', path: 'M4 12h14M13 7l5 5-5 5' },
+                        { key: 'Aceptado', label: 'Aceptado', path: 'm6 12 4 4 8-8' },
+                        { key: 'Pagado', label: 'Pagado', path: 'M6 12h12' },
+                      ].map((estado) => (
+                        <button
+                          key={estado.key}
+                          type="button"
+                          onClick={() => { setFiltroEstadoPresupuesto(estado.key); setPaginaPresupuestos(1); }}
+                          className={`h-8 px-3 rounded-lg text-[9px] font-bold whitespace-nowrap border transition inline-flex items-center gap-1.5 ${
+                            filtroEstadoPresupuesto === estado.key
+                              ? 'bg-slate-900 border-slate-900 text-white'
+                              : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                          }`}
+                        >
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d={estado.path} />
+                          </svg>
+                          {estado.label}
+                        </button>
+                      ))}
                     </div>
                     <div className="h-8 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 lg:w-64 shrink-0">
-                      <IconoPanel name="search" className="w-3.5 h-3.5 text-slate-400" />
+                      <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
                       <input value={busquedaPresupuesto} onChange={e => { setBusquedaPresupuesto(e.target.value); setPaginaPresupuestos(1); }} className="w-full bg-transparent outline-none text-[10px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar Nº, cliente o concepto..." />
                     </div>
                   </div>
@@ -2462,9 +2452,11 @@ useEffect(() => {
                   const listaCompleta = presupuestos.filter(p => {
                     const q = busquedaPresupuesto.toLowerCase().trim();
                     const coincideBusqueda = !q || p.numero_presupuesto.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
-                    const coincideEstado = filtroEstadoPresupuesto === 'Todos' || p.estado === filtroEstadoPresupuesto;
+                    const coincideEstado = !filtroEstadoPresupuesto || p.estado === filtroEstadoPresupuesto;
                     return coincideBusqueda && coincideEstado;
                   });
+                  // La gestión comercial utiliza paginación profesional: 5 presupuestos por página.
+                  // El historial completo continúa disponible desde el perfil de cada cliente.
                   const porPagina = 5;
                   const totalPaginas = Math.max(1, Math.ceil(listaCompleta.length / porPagina));
                   const paginaActual = Math.min(paginaPresupuestos, totalPaginas);
@@ -2473,81 +2465,204 @@ useEffect(() => {
                   const paginasVisibles = totalPaginas <= 7
                     ? Array.from({ length: totalPaginas }, (_, i) => i + 1)
                     : Array.from(new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])).filter(n => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
-
                   return lista.length === 0 ? (
                     <div className="py-14 px-5 text-center">
-                      <div className="mx-auto w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-                        <IconoPanel name="quotes" className="w-5 h-5" />
-                      </div>
+                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg></div>
                       <p className="mt-3 text-[11px] font-semibold text-slate-700">No hay presupuestos que coincidan.</p>
-                      <p className="mt-1 text-[10px] text-slate-400">Probá con otro estado o criterio de búsqueda.</p>
+                      <p className="mt-1 text-[10px] text-slate-400">Probá con otro criterio o creá un nuevo presupuesto.</p>
                     </div>
                   ) : (
                     <>
-                      <div className="overflow-x-auto rounded-lg border border-slate-100">
-                        <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
-                          <thead><tr className="bg-slate-50/70 border-b border-slate-100">
-                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
-                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
-                            <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
-                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
-                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
-                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
-                            <th className="px-3 py-2 w-[112px]"></th>
-                          </tr></thead>
-                          <tbody className="divide-y divide-slate-100">
-                            {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
-                              <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
-                                <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
-                                <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
-                                <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
-                                <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
-                                <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
-                                <td className="px-3 py-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => setFiltroEstadoPresupuesto(p.estado === 'En revisión' || p.estado === 'Rechazado' || p.estado === 'Vencido' ? 'Todos' : (p.estado || 'Emitido'))}
-                                    className={`h-7 rounded-md border px-2 inline-flex items-center gap-1.5 text-[9px] font-semibold transition ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Enviado'?'bg-violet-50 text-violet-700 border-violet-200':'bg-blue-50 text-blue-700 border-blue-200'}`}
-                                    title={`Filtrar por ${p.estado || 'Emitido'}`}
-                                  >
-                                    <IconoEstadoPresupuesto estado={p.estado || 'Emitido'} className="w-3.5 h-3.5" />
-                                    <span>{p.estado || 'Emitido'}</span>
-                                  </button>
-                                </td>
-                                <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {totalPaginas > 1 && (
-                        <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
-                          <div className="flex items-center justify-center sm:justify-end gap-1">
-                            <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior"><svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg></button>
-                            {paginasVisibles.map((numero, index) => {
-                              const anterior = paginasVisibles[index - 1];
-                              return (<Fragment key={numero}>{anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}<button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button></Fragment>);
-                            })}
-                            <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente"><svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg></button>
-                          </div>
+                    <div className="overflow-x-auto rounded-lg border border-slate-100">
+                      <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
+                        <thead><tr className="bg-slate-50/70 border-b border-slate-100">
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
+                          <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
+                          <th className="px-3 py-2 w-[112px]"></th>
+                        </tr></thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
+                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
+                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
+                              <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
+                              <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
+                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
+                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
+                              <td className="px-3 py-2"><select value={p.estado || 'Emitido'} onChange={e => cambiarEstadoPresupuesto(p.presupuesto_id, e.target.value)} aria-label={`Estado de ${p.numero_presupuesto}`} className={`h-7 max-w-[112px] rounded-md border px-2 pr-6 text-[9px] font-semibold outline-none cursor-pointer appearance-none bg-no-repeat bg-[right_5px_center] bg-[length:10px_10px] ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Rechazado'?'bg-red-50 text-red-700 border-red-200':p.estado==='Vencido'?'bg-slate-100 text-slate-600 border-slate-200':'bg-blue-50 text-blue-700 border-blue-200'}`}>{['Emitido','Enviado','Aceptado','Pagado'].map(estado => <option key={estado} value={estado}>{estado}</option>)}</select></td>
+                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {totalPaginas > 1 && (
+                      <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
+                        <div className="flex items-center justify-center sm:justify-end gap-1">
+                          <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior">
+                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+                          </button>
+                          {paginasVisibles.map((numero, index) => {
+                            const anterior = paginasVisibles[index - 1];
+                            return (
+                              <Fragment key={numero}>
+                                {anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}
+                                <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button>
+                              </Fragment>
+                            );
+                          })}
+                          <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente">
+                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                          </button>
                         </div>
-                      )}
+                      </div>
+                    )}
                     </>
                   );
                 })()}
               </section>
             </div>
           )}
-          {activeTab === 'configuracion' && (
+          {activeTab === 'clientes' && (
+            <div className="max-w-6xl mx-auto space-y-3">
+              <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-3 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-[12px] font-extrabold text-slate-900">Directorio de Clientes</h2>
+                      <p className="text-[10px] text-slate-500">Cartera activa · {clientesFiltrados.length} clientes</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64 sm:flex-none">
+                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                      <input
+                        type="text"
+                        placeholder="Buscar nombre o CUIT/DNI..."
+                        value={busquedaCliente}
+                        onChange={e => { setBusquedaCliente(e.target.value); setPaginaClientes(1); }}
+                        className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-2.5 text-[11px] font-medium text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition"
+                      />
+                    </div>
+                    <button onClick={() => setShowModalCliente(true)} className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold whitespace-nowrap transition shadow-sm flex items-center gap-1.5">
+                      <span className="text-sm leading-none">+</span> Cliente
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {clientesFiltrados.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
+                  <div className="w-8 h-8 mx-auto rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-2">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/></svg>
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-700">No hay clientes registrados.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Creá tu primer cliente para comenzar.</p>
+                </div>
+              ) : (
+                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
+                  {clientesPagina.map((c) => (
+                    <article key={c.cliente_id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow transition overflow-hidden">
+                      <div className="p-3">
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-black text-[11px] shrink-0">
+                              {c.nombre_razon_social.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-[11px] font-extrabold text-slate-900 truncate">{c.nombre_razon_social}</h3>
+                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{c.cuit_cuil}</p>
+                            </div>
+                          </div>
+                          <span className={`shrink-0 border text-[8px] font-bold px-1.5 py-1 rounded-md ${c.tipo_documento === 'DNI' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                            {c.tipo_documento || 'CUIT/CUIL'}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
+                          <div className="min-w-0"><span className="block text-slate-400 uppercase tracking-wide font-bold">Condición</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.condicion_tributaria || 'N/D'}</span></div>
+                          <div className="min-w-0"><span className="block text-slate-400 uppercase tracking-wide font-bold">Teléfono</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.telefono || 'N/D'}</span></div>
+                          <div className="min-w-0 col-span-2"><span className="block text-slate-400 uppercase tracking-wide font-bold">Email</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.email || 'N/D'}</span></div>
+                        </div>
+                      </div>
+
+                      <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/60 flex gap-1.5">
+                        <button onClick={() => { setMostrarTodosPresupuestosCliente(false); setClienteSeleccionadoParaVer(c); }} className="flex-1 h-7 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold transition flex items-center justify-center gap-1">
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h9l3 3v15H6z"/><path d="M9 11h6M9 14h6M9 17h4"/></svg> Ver / PDF
+                        </button>
+                        <button onClick={() => setClienteEnEdicion(c)} className="flex-1 h-7 rounded-md bg-white hover:bg-slate-100 text-slate-700 text-[9px] font-bold transition flex items-center justify-center gap-1 border border-slate-200">
+                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg> Editar
+                        </button>
+                        <button type="button" onClick={() => eliminarCliente(c.cliente_id, c.nombre_razon_social)} title="Eliminar cliente" aria-label={`Eliminar cliente ${c.nombre_razon_social}`} className="w-7 h-7 rounded-md bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 hover:border-red-200 transition flex items-center justify-center shrink-0">
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                {totalPaginasClientes > 1 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
+                    <p className="text-[9px] text-slate-500">
+                      Mostrando {inicioClientes + 1}–{Math.min(inicioClientes + porPaginaClientes, clientesFiltrados.length)} de {clientesFiltrados.length} clientes
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setPaginaClientes(Math.max(1, paginaClientesActual - 1))}
+                        disabled={paginaClientesActual === 1}
+                        className="h-7 px-2.5 rounded-md border border-slate-200 bg-white text-[9px] font-bold text-slate-600 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                      >
+                        ‹ Anterior
+                      </button>
+                      {Array.from({ length: totalPaginasClientes }, (_, i) => i + 1).map((pagina) => (
+                        <button
+                          key={pagina}
+                          type="button"
+                          onClick={() => setPaginaClientes(pagina)}
+                          className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaClientesActual === pagina ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          {pagina}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setPaginaClientes(Math.min(totalPaginasClientes, paginaClientesActual + 1))}
+                        disabled={paginaClientesActual === totalPaginasClientes}
+                        className="h-7 px-2.5 rounded-md border border-slate-200 bg-white text-[9px] font-bold text-slate-600 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 transition"
+                      >
+                        Siguiente ›
+                      </button>
+                    </div>
+                  </div>
+                )}
+                </>
+              )}
+            </div>
+          )}
+          {activeTab === 'premium' && (
             <div className="w-full max-w-[1040px] mx-auto">
+              <div className="mb-4">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600">MiOficio Premium</p>
+                <h2 className="mt-1 text-[18px] font-extrabold tracking-[-0.025em] text-slate-950">Herramientas Premium</h2>
+                <p className="mt-1 text-[10px] text-slate-400">Personalizá y configurá las herramientas avanzadas de MiOficio.</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {[
-                  { title:'Logotipo profesional', description:'Personalizá el logotipo de tus presupuestos.', icon:'identity' as const, premium:true, action:() => { if (perfilForm.es_premium) setShowModalIdentidad(true); else mostrarNotificacion('El logotipo profesional es una función Premium.', 'error'); } },
-                  { title:'Medios de cobro', description:'Formas de cobro y datos de pago para tus clientes.', icon:'payments' as const, action:() => setShowModalCobros(true) },
+                  { title:'Logotipo profesional', description:'Personalizá el logotipo de tus presupuestos.', icon:'identity' as const, premium:true, action:() => setShowModalIdentidad(true) },
+                  { title:'Medios de cobro', description:'Formas de cobro y datos de pago para tus clientes.', icon:'payments' as const, premium:false, action:() => setShowModalCobros(true) },
                   { title:'Numeración y series', description:'Serie, año y próximo número de tus presupuestos.', icon:'series' as const, premium:true, action:() => setConfigComercialActiva('series') }
                 ].map((item) => (
-                  <button key={item.title} type="button" onClick={item.action} className="group min-h-[142px] text-left rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,.06)] focus:outline-none focus:ring-2 focus:ring-blue-500/15">
+                  <button key={item.title} type="button" onClick={item.action} className="group min-h-[142px] text-left rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-blue-200 hover:shadow-[0_8px_24px_rgba(15,23,42,.06)] focus:outline-none focus:ring-2 focus:ring-blue-500/15">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 group-hover:border-blue-200 group-hover:text-blue-600 transition-colors">
                         <IconoPanel name={item.icon} className="h-5 w-5" />
