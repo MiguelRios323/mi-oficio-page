@@ -212,14 +212,7 @@ const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', '
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-const estadosVisiblesPresupuesto = [
-  { key: 'Emitido', label: 'Emitido', icon: '●' },
-  { key: 'Enviado', label: 'Enviado', icon: '→' },
-  { key: 'Aceptado', label: 'Aceptado', icon: '✓' },
-  { key: 'Pagado', label: 'Pagado', icon: '✓' },
-] as const;
-
-function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'|'sparkles'|'check'|'arrow'; className?: string }) {
+function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'; className?: string }) {
   const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
   switch (name) {
     case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
@@ -229,12 +222,6 @@ function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'q
     case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3.1"/><path d="M5 20.5a7 7 0 0 1 14 0"/><path d="M18.5 4.8v3.4M16.8 6.5h3.4"/></svg>;
     case 'plus': return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>;
     case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.4 4.4"/></svg>;
-    case 'sparkles':
-      return <svg {...common}><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z"/><path d="m19 13 .7 2.3L22 16l-2.3.7L19 19l-.7-2.3L16 16l2.3-.7L19 13Z"/></svg>;
-    case 'check':
-      return <svg {...common}><path d="m5 12 4 4L19 6"/></svg>;
-    case 'arrow':
-      return <svg {...common}><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg>;
     case 'logout': return <svg {...common}><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"/></svg>;
     case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
     case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
@@ -548,10 +535,6 @@ function LandingPage({ onGoToLogin, onGoToRegister }: { onGoToLogin: () => void;
         </div>
       </header>
 
-      <style>{`
-        .mioficio-status-pill{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;border-radius:9999px;padding:.25rem .5rem;font-size:8px;line-height:1;font-weight:700;border:1px solid rgb(226 232 240);background:#fff;color:rgb(71 85 105)}
-        @media(max-width:640px){.mioficio-status-pill{font-size:7px;padding:.25rem .42rem}}
-      `}</style>
       <main className="relative z-10">
         <section className="max-w-7xl mx-auto px-5 sm:px-6 pt-20 sm:pt-28 pb-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.07] px-3.5 py-2 text-[10px] sm:text-[11px] font-bold text-blue-300">
@@ -1377,20 +1360,6 @@ useEffect(() => {
     const nuevosClientes = [...clientes, cli];
     setClientes(nuevosClientes);
     sincronizarConCloudDirecto(perfilForm, nuevosClientes, presupuestos);
-
-    // Si el cliente se creó desde Nuevo presupuesto, vuelve al presupuesto
-    // y queda seleccionado automáticamente sin perder los datos cargados.
-    if (showModalPresupuesto) {
-      setNuevoPresupuesto(prev => ({
-        ...prev,
-        cliente: cli.nombre_razon_social,
-        cuit: cli.cuit_cuil || '',
-        email: cli.email || '',
-        telefono: cli.telefono || '',
-        direccion_obra: cli.direccion || '',
-      }));
-    }
-
     setShowModalCliente(false);
     mostrarNotificacion('Cliente registrado con éxito en la nube 🚀');
     setNuevoCliente({
@@ -2063,7 +2032,7 @@ useEffect(() => {
           .budget-generator h3 { font-size: 17px !important; }
           .budget-generator .budget-footer {
             min-height: auto;
-            padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+            padding: 10px 12px;
             gap: 8px;
           }
           .budget-generator .budget-actions {
@@ -2104,9 +2073,9 @@ useEffect(() => {
           box-sizing: border-box !important;
           width: 100%;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 13px !important;
-          line-height: 1.3 !important;
-          font-weight: 500 !important;
+          font-size: 15px !important;
+          line-height: 1.35 !important;
+          font-weight: 450 !important;
           letter-spacing: 0 !important;
           font-variant-numeric: normal !important;
           color: #0f172a !important;
@@ -2118,7 +2087,7 @@ useEffect(() => {
 
         .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
         .mi-oficio-ui select {
-          min-height: 40px !important;
+          min-height: 42px !important;
           padding: 0 12px !important;
           border-radius: 10px !important;
         }
@@ -2188,7 +2157,7 @@ useEffect(() => {
       )}
 
       {/* APP SHELL — DASHBOARD PREMIUM */}
-      <aside className="hidden lg:flex w-[236px] min-w-[236px] shrink-0 bg-[#08111f] text-white flex-col border-r border-white/[0.06] sticky top-0 h-screen z-30 overflow-hidden">
+      <aside className="hidden lg:flex w-[224px] min-w-[224px] shrink-0 bg-[#08111f] text-white flex-col border-r border-white/[0.06] sticky top-0 h-screen z-30 overflow-hidden">
         <div className="px-4 py-3.5 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_8px_30px_rgba(37,99,235,.28)]">
@@ -2215,8 +2184,11 @@ useEffect(() => {
               <span className="flex-1 text-left">Presupuestos</span>
               {presupuestos.length > 0 && <span className="min-w-5 h-4.5 px-1.5 rounded-md bg-white/10 text-[10px] text-slate-300 flex items-center justify-center">{presupuestos.length}</span>}
             </button>
+            <button onClick={() => setActiveTab('configuracion')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'configuracion' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
+              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="settings" className="w-4 h-4" /></span><span>Configuración</span>
+            </button>
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
-              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil</span>
+              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
             </button>
           </nav>
         </div>
@@ -2235,7 +2207,10 @@ useEffect(() => {
                 <IconoPanel name="plus" className="w-3.5 h-3.5" />
               )}
             </span>
-            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
+            <span className="flex items-center gap-2">
+              <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'PREMIUM ACTIVO' : 'PREMIUM'}</span>
+              {!cargandoPremium && !perfilForm.es_premium && <span className="rounded-md border border-blue-400/20 bg-blue-500/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-blue-300">PRO</span>}
+            </span>
           </button>
           <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
@@ -2248,13 +2223,13 @@ useEffect(() => {
      
 
       <main className="flex-1 min-w-0 min-h-0 bg-[#f5f7fb] overflow-y-auto overflow-x-hidden pb-[78px] lg:pb-0">
-        <header className="h-[60px] sm:h-[62px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
+        <header className="h-[56px] sm:h-[58px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
-            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil' : ''}</h1></div>
+            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
             <div className="hidden md:flex w-[210px] xl:w-[260px] h-8 rounded-lg bg-slate-50 border border-slate-200 items-center gap-2.5 px-3.5 ml-3"><IconoPanel name="search" className="w-4 h-4 text-slate-400 shrink-0" /><input className="w-full bg-transparent outline-none text-[11px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar en MiOficio..." /></div>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={activarPremium}
@@ -2269,9 +2244,6 @@ useEffect(() => {
                 <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-[5px] px-1 text-[7px] font-black tracking-[0.08em] ${perfilForm.es_premium ? 'bg-amber-500 text-white' : 'bg-slate-900 text-white'}`}>PRO</span>
               )}
               <span className="whitespace-nowrap">{perfilForm.es_premium ? 'PREMIUM ACTIVO' : 'PREMIUM'}</span>
-            </button>
-            <button type="button" onClick={onLogout} title="Cerrar sesión" aria-label="Cerrar sesión" className="lg:hidden h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition">
-              <IconoPanel name="logout" className="w-4 h-4" />
             </button>
           </div>
           {activeTab === 'dashboard' && (
@@ -2288,327 +2260,276 @@ useEffect(() => {
           )}
         </header>
 
-        <div className="w-full max-w-[1440px] mx-auto px-4 py-5 sm:px-6 lg:px-8 min-w-0">
+        <div className="w-full max-w-[1180px] mx-auto px-4 py-4 sm:px-5 lg:px-6 min-w-0">
           {activeTab === 'dashboard' && (
-            <div className="mx-auto w-full max-w-[1180px] space-y-5">
-              {(() => {
-                const nombreUsuario = (user.name || 'Usuario').trim().split(/\s+/)[0] || 'Usuario';
-                const totalPresupuestado = presupuestos.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
-                const emitidos = presupuestos.length;
-                const aceptados = presupuestos.filter(p => p.estado === 'Aceptado').length;
-                const pagados = presupuestos.filter(p => p.estado === 'Pagado').length;
-                const pendientes = presupuestos.filter(p => !['Aceptado', 'Pagado', 'Rechazado', 'Vencido'].includes(p.estado || 'Emitido')).length;
-                const tasaAceptacion = emitidos ? Math.round(((aceptados + pagados) / emitidos) * 100) : 0;
-                const recientes = [...presupuestos].sort((a,b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).slice(0, 5);
+            <div className="space-y-4">
+              {/* Dashboard header */}
+              <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-400">Resumen</p>
+                  <h2 className="mt-0.5 text-[20px] leading-6 font-extrabold tracking-[-0.035em] text-slate-950">Bienvenido nuevamente, {user.name.split(' ')[0]}</h2>
+                  <p className="mt-1 text-[11px] text-slate-500">Acá tenés un resumen de la actividad de tu negocio.</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 h-8 px-2.5 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-500">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg>
+                  {new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' })}
+                </div>
+              </section>
 
-                const icon = (type: 'wallet'|'file'|'users'|'arrow'|'check'|'clock'|'plus'|'search') => {
-                  const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.8, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className:'h-[18px] w-[18px]' };
-                  if (type === 'wallet') return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M15 14h3"/><circle cx="15" cy="14" r=".7" fill="currentColor" stroke="none"/></svg>;
-                  if (type === 'file') return <svg {...common}><path d="M7 3.5h7l4 4v13H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z"/><path d="M14 3.5v5h5M9 13h5M9 16.5h4"/></svg>;
-                  if (type === 'users') return <svg {...common}><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5c.6-3.2 2.4-4.8 5.5-4.8s4.9 1.6 5.5 4.8"/><path d="M15.5 6a3 3 0 0 1 0 5.5M17 14.5c1.9.5 3.1 2 3.5 4.5"/></svg>;
-                  if (type === 'arrow') return <svg {...common}><path d="M4 12h15"/><path d="m14 7 5 5-5 5"/></svg>;
-                  if (type === 'check') return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg>;
-                  if (type === 'clock') return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>;
-                  if (type === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
-                  return <svg {...common}><circle cx="10.8" cy="10.8" r="6.2"/><path d="m16 16 4 4"/></svg>;
-                };
+              {/* KPIs — compact */}
+              <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {label:'Cobrado', value:`$ ${Number(totalCobrado).toLocaleString('es-AR')}`, note:'Presupuestos pagados', icon:'money', tone:'emerald'},
+                  {label:'Presupuestos', value:String(presupuestos.length), note:'Documentos emitidos', icon:'file', tone:'blue'},
+                  {label:'Clientes', value:String(clientes.length), note:'Cartera', icon:'users', tone:'slate'}
+                ].map((kpi) => (
+                  <div key={kpi.label} className="min-h-[88px] bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-start justify-between shadow-[0_1px_2px_rgba(15,23,42,.02)]">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.08em]">{kpi.label}</p>
+                      <p className="mt-2 text-[21px] leading-6 font-extrabold tracking-[-0.035em] text-slate-950 truncate">{kpi.value}</p>
+                      <p className="mt-1 text-[10px] text-slate-400">{kpi.note}</p>
+                    </div>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${kpi.tone==='emerald'?'bg-emerald-50 text-emerald-600':kpi.tone==='violet'?'bg-violet-50 text-violet-600':kpi.tone==='blue'?'bg-blue-50 text-blue-600':'bg-slate-100 text-slate-600'}`}>
+                      {kpi.icon==='money' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 9h.01M17 15h.01"/></svg>}
+                      {kpi.icon==='clock' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>}
+                      {kpi.icon==='file' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg>}
+                      {kpi.icon==='users' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/></svg>}
+                    </div>
+                  </div>
+                ))}
+              </section>
 
-                return (
-                  <>
-                    {/* HERO — una sola jerarquía */}
-                    <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-600">MiOficio · Resumen</p>
-                        <h1 className="mt-1 text-[25px] font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[29px]">Buenos días, {nombreUsuario}</h1>
-                        <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">Todo lo importante de tu negocio, en una sola vista.</p>
+              {/* Main workspace */}
+              <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.85fr)] gap-3">
+                {/* Recent budgets */}
+                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
+                  <div className="h-[50px] px-3 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-[13px] font-bold text-slate-900">Presupuestos recientes</h3>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Últimos documentos generados</p>
+                    </div>
+                    <button onClick={() => setActiveTab('presupuestos')} className="text-[10px] font-semibold text-blue-600 hover:text-blue-700">Ver más →</button>
+                  </div>
+
+                  {presupuestosRecientes.length === 0 ? (
+                    <div className="py-14 px-5 text-center">
+                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg>
                       </div>
-                      
-                    </section>
+                      <p className="mt-3 text-[11px] font-semibold text-slate-700">Todavía no tenés presupuestos</p>
+                      <p className="mt-1 text-[10px] text-slate-400">Creá el primero y empezá a trabajar con MiOficio.</p>
+                      <button onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-4 h-8 px-3.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700">Crear presupuesto</button>
+                    </div>
+                  ) : (
+                    <>
+                    <div className="hidden md:block w-full overflow-x-auto">
+                      <table className="w-full table-fixed text-left">
+                        <thead>
+                          <tr className="bg-slate-50/70 border-b border-slate-100">
+                            <th className="px-3 py-2 w-[88px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
+                            <th className="px-3 py-2 w-[170px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
+                            <th className="px-3 py-2 w-[90px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
+                            <th className="px-3 py-2 w-[105px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
+                            <th className="px-3 py-2 w-[125px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
+                            <th className="px-3 py-2 w-[82px]"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {presupuestosRecientes.map(p => (
+                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
+                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
+                              <td className="px-3 py-2"><div className="text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</div><div className="text-[9px] text-slate-400 mt-0.5 truncate max-w-[190px]">{p.items?.[0]?.descripcion || 'Presupuesto'}</div></td>
+                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
+                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
+                              <td className="px-3 py-2">
+                                <SelectorEstadoPresupuesto
+                                  estado={p.estado || 'Emitido'}
+                                  onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)}
+                                />
+                              </td>
+                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg></button></div></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-                    {/* KPI — tres tarjetas, sin datos inventados */}
-                    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                      {[
-                        {label:'Cobrado', value:`$ ${Number(totalCobrado).toLocaleString('es-AR')}`, note:'Pagos confirmados', type:'wallet' as const, tone:'emerald'},
-                        {label:'Presupuestado', value:`$ ${totalPresupuestado.toLocaleString('es-AR')}`, note:`${emitidos} documento${emitidos === 1 ? '' : 's'} emitido${emitidos === 1 ? '' : 's'}`, type:'file' as const, tone:'blue'},
-                        {label:'Clientes', value:String(clientes.length), note:'Clientes registrados', type:'users' as const, tone:'violet'}
-                      ].map(kpi => (
-                        <article key={kpi.label} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(15,23,42,.07)]">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                              <p className="text-[9px] font-bold uppercase tracking-[0.11em] text-slate-400">{kpi.label}</p>
-                              <p className="mt-2 truncate text-[23px] font-extrabold tracking-[-0.045em] text-slate-950">{kpi.value}</p>
-                              <p className="mt-1 text-[8px] text-slate-400">{kpi.note}</p>
+                    <div className="md:hidden divide-y divide-slate-100">
+                      {presupuestosRecientes.map(p => (
+                        <article key={p.presupuesto_id} className="px-3 py-3 overflow-hidden">
+                          <div className="flex items-start justify-between gap-2 min-w-0">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-[10px] font-bold text-slate-500 shrink-0">{p.numero_presupuesto}</span>
+                                <span className="text-[10px] text-slate-400 shrink-0">{p.fecha}</span>
+                              </div>
+                              <p className="mt-1 text-[11px] font-bold text-slate-900 truncate">{p.cliente || 'Cliente sin nombre'}</p>
+                              <p className="mt-0.5 text-[9px] text-slate-400 truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</p>
                             </div>
-                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${kpi.tone === 'emerald' ? 'bg-emerald-50 text-emerald-600' : kpi.tone === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600'}`}>
-                              {icon(kpi.type)}
-                            </span>
+                            <span className="text-[11px] font-extrabold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</span>
+                          </div>
+                          <div className="mt-2.5 flex items-center justify-between gap-2 min-w-0">
+                            <SelectorEstadoPresupuesto
+                              estado={p.estado || 'Emitido'}
+                              onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)}
+                            />
+                            <div className="flex gap-1.5 shrink-0">
+                              <button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+                              </button>
+                              <button onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
+                              </button>
+                            </div>
                           </div>
                         </article>
                       ))}
-                    </section>
-
-                    {/* FLUJO — único bloque de seguimiento */}
-                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04)] sm:p-5">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <h2 className="text-[13px] font-extrabold text-slate-950">Flujo de presupuestos</h2>
-                          <p className="mt-0.5 text-[8px] text-slate-400">Del primer contacto al cobro.</p>
-                        </div>
-                        {emitidos > 0 && <span className="w-fit rounded-full bg-slate-50 px-2 py-1 text-[7px] font-bold text-slate-500">{tasaAceptacion}% de aceptación</span>}
+                    </div>
+                    <div className="border-t border-slate-100 px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicioDashboard + 1}–{Math.min(inicioDashboard + porPaginaDashboard, presupuestosRecientesCompletos.length)}</span> de <span className="font-semibold text-slate-600">{presupuestosRecientesCompletos.length}</span> presupuestos</p>
+                      <div className="flex items-center justify-end gap-1 overflow-x-auto">
+                        <button type="button" disabled={paginaDashboardActual === 1} onClick={() => setPaginaDashboardPresupuestos(prev => Math.max(1, prev - 1))} className="h-7 px-2 rounded-md border border-slate-200 text-[9px] font-semibold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 whitespace-nowrap">‹ Anterior</button>
+                        {paginasDashboardVisibles.map((pagina, index) => {
+                          const anterior = paginasDashboardVisibles[index - 1];
+                          const mostrarSeparador = index > 0 && pagina - anterior > 1;
+                          return (
+                            <Fragment key={pagina}>
+                              {mostrarSeparador && <span className="px-0.5 text-[9px] text-slate-400">…</span>}
+                              <button type="button" onClick={() => setPaginaDashboardPresupuestos(pagina)} className={`w-7 h-7 rounded-md border text-[9px] font-bold ${paginaDashboardActual === pagina ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{pagina}</button>
+                            </Fragment>
+                          );
+                        })}
+                        <button type="button" disabled={paginaDashboardActual === totalPaginasDashboard} onClick={() => setPaginaDashboardPresupuestos(prev => Math.min(totalPaginasDashboard, prev + 1))} className="h-7 px-2 rounded-md border border-slate-200 text-[9px] font-semibold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 whitespace-nowrap">Siguiente ›</button>
                       </div>
+                    </div>
+                    </>
+                  )}
+                </div>
 
-                      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-0">
-                        {[
-                          {label:'Emitidos',value:emitidos,type:'file' as const,tone:'blue'},
-                          {label:'Aceptados',value:aceptados + pagados,type:'check' as const,tone:'emerald'},
-                          {label:'Pagados',value:pagados,type:'wallet' as const,tone:'violet'}
-                        ].map((step,index) => (
-                          <div key={step.label} className="relative flex items-center rounded-xl bg-slate-50 px-3 py-3 sm:rounded-none sm:bg-transparent sm:px-4">
-                            {index > 0 && <span className="absolute -left-2 hidden text-slate-300 sm:block">{icon('arrow')}</span>}
-                            <span className={`mr-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${step.tone === 'blue' ? 'bg-blue-50 text-blue-600' : step.tone === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-violet-50 text-violet-600'}`}>{icon(step.type)}</span>
-                            <div><p className="text-[17px] font-extrabold text-slate-950">{step.value}</p><p className="text-[7px] font-bold uppercase tracking-[0.08em] text-slate-400">{step.label}</p></div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
+              </section>
 
-                    {/* RECIENTES — tabla única, sin sidebar de acciones */}
-                    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)]">
-                      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 sm:px-5">
-                        <div><h2 className="text-[13px] font-extrabold text-slate-950">Presupuestos recientes</h2><p className="mt-0.5 text-[8px] text-slate-400">Los últimos documentos de tu negocio.</p></div>
-                        <button type="button" onClick={() => setActiveTab('presupuestos')} className="flex items-center gap-1 text-[8px] font-bold text-blue-600 hover:text-blue-700">Ver todos {icon('arrow')}</button>
-                      </div>
 
-                      {recientes.length === 0 ? (
-                        <div className="px-5 py-12 text-center">
-                          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-50 text-slate-400">{icon('file')}</div>
-                          <p className="mt-3 text-[10px] font-bold text-slate-700">Todavía no hay presupuestos</p>
-                          <p className="mt-1 text-[8px] text-slate-400">Creá tu primer presupuesto para comenzar.</p>
-                          <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-4 h-8 rounded-lg bg-blue-600 px-3 text-[8px] font-bold text-white hover:bg-blue-700">Crear presupuesto</button>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="hidden overflow-x-auto md:block">
-                            <table className="w-full text-left">
-                              <thead className="bg-slate-50/80"><tr className="text-[7px] font-bold uppercase tracking-[0.08em] text-slate-400"><th className="px-5 py-2.5">N.º</th><th className="px-5 py-2.5">Cliente</th><th className="px-5 py-2.5">Fecha</th><th className="px-5 py-2.5">Estado</th><th className="px-5 py-2.5 text-right">Total</th></tr></thead>
-                              <tbody className="divide-y divide-slate-100">{recientes.map(p => <tr key={p.presupuesto_id} className="text-[8px] text-slate-600 hover:bg-slate-50/70"><td className="px-5 py-3 font-bold text-slate-700">{p.numero_presupuesto}</td><td className="px-5 py-3 font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td><td className="px-5 py-3 text-slate-400">{p.fecha}</td><td className="px-5 py-3"><SelectorEstadoPresupuesto estado={p.estado || 'Emitido'} onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)} /></td><td className="px-5 py-3 text-right font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</td></tr>)}</tbody>
-                            </table>
-                          </div>
-                          <div className="divide-y divide-slate-100 md:hidden">{recientes.map(p => <button key={p.presupuesto_id} type="button" onClick={() => setActiveTab('presupuestos')} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">{icon('file')}</span><span className="min-w-0 flex-1"><span className="block truncate text-[9px] font-bold text-slate-900">{p.cliente || 'Cliente sin nombre'}</span><span className="mt-0.5 block truncate text-[7px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</span></span><span className="shrink-0 text-right"><span className="block text-[9px] font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</span><span className="mt-0.5 block text-[7px] font-semibold text-slate-400">{p.estado || 'Emitido'}</span></span></button>)}</div>
-                        </>
-                      )}
-                    </section>
-                  </>
-                );
-              })()}
             </div>
           )}
           {activeTab === 'presupuestos' && (
-            <div className="mx-auto w-full max-w-[1180px] space-y-4">
-              <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)]">
-                <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-4">
+              <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
+                <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-blue-600">Gestión comercial</p>
-                      <h2 className="mt-1 text-[18px] font-extrabold tracking-[-0.025em] text-slate-950">Presupuestos</h2>
-                      <p className="mt-1 text-[10px] leading-4 text-slate-500">
-                        Creá, gestioná y hacé seguimiento de todos tus presupuestos.
-                      </p>
-                    </div>
-
-                    <div className="relative w-full sm:w-[270px] shrink-0">
-                      <IconoPanel name="search" className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                      <input
-                        value={busquedaPresupuesto}
-                        onChange={e => {
-                          setBusquedaPresupuesto(e.target.value);
-                          setPaginaPresupuestos(1);
-                        }}
-                        className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[10px] font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white"
-                        placeholder="Buscar cliente o presupuesto..."
-                      />
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 inline-flex items-center justify-center shrink-0">
+                          <IconoPanel name="quotes" className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-600">Gestión comercial</p>
+                          <h2 className="mt-0.5 text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Presupuestos</h2>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-[10px] text-slate-400">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <span className="mr-1 text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">Estados</span>
-                    <span className="mioficio-status-pill"><span className="text-slate-400">●</span> Emitido</span>
-                    <span className="mioficio-status-pill"><span className="text-blue-600">→</span> Enviado</span>
-                    <span className="mioficio-status-pill"><span className="text-amber-600">✓</span> Aceptado</span>
-                    <span className="mioficio-status-pill"><span className="text-emerald-600">✓</span> Pagado</span>
+                  <div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 min-w-0">
+                      {['Emitido','Enviado','Aceptado','Pagado'].map(estado => {
+                        const activo = filtroEstadoPresupuesto === estado;
+                        return (
+                          <button
+                            key={estado}
+                            type="button"
+                            onClick={() => {
+                              setFiltroEstadoPresupuesto(activo ? 'Todos' : estado);
+                              setPaginaPresupuestos(1);
+                            }}
+                            aria-pressed={activo}
+                            aria-label={`Filtrar presupuestos por ${estado}`}
+                            className={`h-8 px-2.5 rounded-lg text-[9px] font-bold whitespace-nowrap border transition inline-flex items-center gap-1.5 shrink-0 ${activo ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700'}`}
+                          >
+                            <IconoEstadoPresupuesto estado={estado} className="w-3.5 h-3.5" />
+                            <span>{estado}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="h-8 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 lg:w-64 shrink-0">
+                      <IconoPanel name="search" className="w-3.5 h-3.5 text-slate-400" />
+                      <input value={busquedaPresupuesto} onChange={e => { setBusquedaPresupuesto(e.target.value); setPaginaPresupuestos(1); }} className="w-full bg-transparent outline-none text-[10px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar Nº, cliente o concepto..." />
+                    </div>
                   </div>
                 </div>
-
                 {(() => {
                   const listaCompleta = presupuestos.filter(p => {
                     const q = busquedaPresupuesto.toLowerCase().trim();
-                    return !q
-                      || p.numero_presupuesto.toLowerCase().includes(q)
-                      || p.cliente.toLowerCase().includes(q)
-                      || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
+                    const coincideBusqueda = !q || p.numero_presupuesto.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
+                    const coincideEstado = filtroEstadoPresupuesto === 'Todos' || p.estado === filtroEstadoPresupuesto;
+                    return coincideBusqueda && coincideEstado;
                   });
-
                   const porPagina = 5;
                   const totalPaginas = Math.max(1, Math.ceil(listaCompleta.length / porPagina));
                   const paginaActual = Math.min(paginaPresupuestos, totalPaginas);
                   const inicio = (paginaActual - 1) * porPagina;
-                  const lista = [...listaCompleta]
-                    .sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
-                    .slice(inicio, inicio + porPagina);
-
+                  const lista = listaCompleta.slice(inicio, inicio + porPagina);
                   const paginasVisibles = totalPaginas <= 7
                     ? Array.from({ length: totalPaginas }, (_, i) => i + 1)
-                    : Array.from(
-                        new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])
-                      )
-                        .filter(n => n >= 1 && n <= totalPaginas)
-                        .sort((a, b) => a - b);
-
-                  const estadoVisible = (estado: string | undefined) => {
-                    if (estado === 'Enviado') return 'Enviado';
-                    if (estado === 'Aceptado') return 'Aceptado';
-                    if (estado === 'Pagado') return 'Pagado';
-                    return 'Emitido';
-                  };
-
-                  const estadoClass = (estado: string) => {
-                    if (estado === 'Pagado') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                    if (estado === 'Aceptado') return 'bg-amber-50 text-amber-700 border-amber-200';
-                    if (estado === 'Enviado') return 'bg-blue-50 text-blue-700 border-blue-200';
-                    return 'bg-slate-50 text-slate-600 border-slate-200';
-                  };
-
-                  const estadoIcon = (estado: string) => {
-                    if (estado === 'Pagado' || estado === 'Aceptado') return '✓';
-                    if (estado === 'Enviado') return '→';
-                    return '●';
-                  };
+                    : Array.from(new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])).filter(n => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
 
                   return lista.length === 0 ? (
-                    <div className="px-5 py-16 text-center">
-                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
-                        <IconoPanel name="quotes" className="h-4 w-4" />
+                    <div className="py-14 px-5 text-center">
+                      <div className="mx-auto w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                        <IconoPanel name="quotes" className="w-5 h-5" />
                       </div>
-                      <p className="mt-3 text-[11px] font-bold text-slate-700">Todavía no hay presupuestos</p>
-                      <p className="mt-1 text-[9px] text-slate-400">
-                        Los presupuestos que generes aparecerán acá.
-                      </p>
+                      <p className="mt-3 text-[11px] font-semibold text-slate-700">No hay presupuestos que coincidan.</p>
+                      <p className="mt-1 text-[10px] text-slate-400">Probá con otro estado o criterio de búsqueda.</p>
                     </div>
                   ) : (
                     <>
-                      {/* PC */}
-                      <div className="hidden overflow-x-auto md:block">
-                        <table className="w-full text-left">
-                          <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/70">
-                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">N.º</th>
-                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Cliente</th>
-                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Fecha</th>
-                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Estado</th>
-                              <th className="px-4 py-2.5 text-right text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Total</th>
-                              <th className="w-[104px] px-4 py-2.5"></th>
-                            </tr>
-                          </thead>
+                      <div className="overflow-x-auto rounded-lg border border-slate-100">
+                        <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
+                          <thead><tr className="bg-slate-50/70 border-b border-slate-100">
+                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
+                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
+                            <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
+                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
+                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
+                            <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
+                            <th className="px-3 py-2 w-[112px]"></th>
+                          </tr></thead>
                           <tbody className="divide-y divide-slate-100">
-                            {lista.map(p => {
-                              const estado = estadoVisible(p.estado);
-                              return (
-                                <tr key={p.presupuesto_id} className="transition hover:bg-slate-50/60">
-                                  <td className="px-4 py-3 text-[9px] font-bold text-slate-500">{p.numero_presupuesto}</td>
-                                  <td className="px-4 py-3">
-                                    <p className="truncate text-[10px] font-bold text-slate-900">{p.cliente || 'Cliente sin nombre'}</p>
-                                    <p className="mt-0.5 max-w-[260px] truncate text-[8px] text-slate-400">{p.items?.[0]?.descripcion || 'Presupuesto'}</p>
-                                  </td>
-                                  <td className="px-4 py-3 text-[9px] text-slate-500">{p.fecha}</td>
-                                  <td className="px-4 py-3">
-                                    <button
-                                      type="button"
-                                      onClick={() => cambiarEstadoPresupuesto(p.presupuesto_id, estado === 'Emitido' ? 'Enviado' : estado === 'Enviado' ? 'Aceptado' : estado === 'Aceptado' ? 'Pagado' : 'Emitido')}
-                                      className={`mioficio-status-pill ${estadoClass(estado)}`}
-                                      title="Cambiar estado"
-                                    >
-                                      <span>{estadoIcon(estado)}</span>{estado}
-                                    </button>
-                                  </td>
-                                  <td className="px-4 py-3 text-right text-[10px] font-extrabold text-slate-950">
-                                    $ {(p.total || 0).toLocaleString('es-AR')}
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    <div className="flex justify-end gap-1">
-                                      <button type="button" onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
-                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
-                                      </button>
-                                      <button type="button" onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
-                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
-                                      </button>
-                                      <button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600">
-                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
+                            {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
+                              <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
+                                <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
+                                <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
+                                <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
+                                <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
+                                <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
+                                <td className="px-3 py-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setFiltroEstadoPresupuesto(p.estado === 'En revisión' || p.estado === 'Rechazado' || p.estado === 'Vencido' ? 'Todos' : (p.estado || 'Emitido'))}
+                                    className={`h-7 rounded-md border px-2 inline-flex items-center gap-1.5 text-[9px] font-semibold transition ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Enviado'?'bg-violet-50 text-violet-700 border-violet-200':'bg-blue-50 text-blue-700 border-blue-200'}`}
+                                    title={`Filtrar por ${p.estado || 'Emitido'}`}
+                                  >
+                                    <IconoEstadoPresupuesto estado={p.estado || 'Emitido'} className="w-3.5 h-3.5" />
+                                    <span>{p.estado || 'Emitido'}</span>
+                                  </button>
+                                </td>
+                                <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
-
-                      {/* Móvil */}
-                      <div className="space-y-2 p-3 md:hidden">
-                        {lista.map(p => {
-                          const estado = estadoVisible(p.estado);
-                          return (
-                            <div key={p.presupuesto_id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,.03)]">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="truncate text-[10px] font-extrabold text-slate-900">{p.cliente || 'Cliente sin nombre'}</p>
-                                  <p className="mt-0.5 text-[8px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</p>
-                                </div>
-                                <p className="shrink-0 text-[11px] font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</p>
-                              </div>
-                              <div className="mt-2.5 flex items-center justify-between gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => cambiarEstadoPresupuesto(p.presupuesto_id, estado === 'Emitido' ? 'Enviado' : estado === 'Enviado' ? 'Aceptado' : estado === 'Aceptado' ? 'Pagado' : 'Emitido')}
-                                  className={`mioficio-status-pill ${estadoClass(estado)}`}
-                                >
-                                  <span>{estadoIcon(estado)}</span>{estado}
-                                </button>
-                                <div className="flex gap-1">
-                                  <button type="button" onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400">
-                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
-                                  </button>
-                                  <button type="button" onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400">
-                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
                       {totalPaginas > 1 && (
-                        <div className="flex flex-col gap-2.5 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                          <p className="text-[8px] text-slate-400">
-                            Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span>
-                          </p>
-                          <div className="flex items-center justify-center gap-1 sm:justify-end">
-                            <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30" aria-label="Página anterior">
-                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-                            </button>
+                        <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
+                          <div className="flex items-center justify-center sm:justify-end gap-1">
+                            <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior"><svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg></button>
                             {paginasVisibles.map((numero, index) => {
                               const anterior = paginasVisibles[index - 1];
-                              return (
-                                <Fragment key={numero}>
-                                  {anterior && numero - anterior > 1 && <span className="w-4 text-center text-[9px] text-slate-400">…</span>}
-                                  <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`flex h-7 w-7 items-center justify-center rounded-lg border text-[8px] font-bold ${paginaActual === numero ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 text-slate-500'}`}>{numero}</button>
-                                </Fragment>
-                              );
+                              return (<Fragment key={numero}>{anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}<button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button></Fragment>);
                             })}
-                            <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30" aria-label="Página siguiente">
-                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                            </button>
+                            <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente"><svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg></button>
                           </div>
                         </div>
                       )}
@@ -2616,128 +2537,6 @@ useEffect(() => {
                   );
                 })()}
               </section>
-            </div>
-          )}
-          {activeTab === 'clientes' && (
-            <div className="max-w-6xl mx-auto space-y-3">
-              <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,.04)] overflow-hidden">
-                <div className="px-3 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="text-[12px] font-extrabold text-slate-900">Directorio de Clientes</h2>
-                      <p className="text-[10px] text-slate-500">Cartera activa · {clientesFiltrados.length} clientes</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-64 sm:flex-none">
-                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-                      <input
-                        type="text"
-                        placeholder="Buscar nombre o CUIT/DNI..."
-                        value={busquedaCliente}
-                        onChange={e => { setBusquedaCliente(e.target.value); setPaginaClientes(1); }}
-                        className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-2.5 text-[11px] font-medium text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition"
-                      />
-                    </div>
-                    <button onClick={() => setShowModalCliente(true)} className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold whitespace-nowrap transition shadow-sm flex items-center gap-1.5">
-                      <span className="text-sm leading-none">+</span> Cliente
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {clientesFiltrados.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-                  <div className="w-8 h-8 mx-auto rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-2">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/></svg>
-                  </div>
-                  <p className="text-[11px] font-bold text-slate-700">No hay clientes registrados.</p>
-                  <p className="text-[10px] text-slate-400 mt-1">Creá tu primer cliente para comenzar.</p>
-                </div>
-              ) : (
-                <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                  {clientesPagina.map((c) => (
-                    <article key={c.cliente_id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow transition overflow-hidden">
-                      <div className="p-3">
-                        <div className="flex items-start justify-between gap-2.5">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center font-black text-[11px] shrink-0">
-                              {c.nombre_razon_social.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <h3 className="text-[11px] font-extrabold text-slate-900 truncate">{c.nombre_razon_social}</h3>
-                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{c.cuit_cuil}</p>
-                            </div>
-                          </div>
-                          <span className={`shrink-0 border text-[8px] font-bold px-1.5 py-1 rounded-md ${c.tipo_documento === 'DNI' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                            {c.tipo_documento || 'CUIT/CUIL'}
-                          </span>
-                        </div>
-
-                        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[9px]">
-                          <div className="min-w-0"><span className="block text-slate-400 uppercase tracking-wide font-bold">Condición</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.condicion_tributaria || 'N/D'}</span></div>
-                          <div className="min-w-0"><span className="block text-slate-400 uppercase tracking-wide font-bold">Teléfono</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.telefono || 'N/D'}</span></div>
-                          <div className="min-w-0 col-span-2"><span className="block text-slate-400 uppercase tracking-wide font-bold">Email</span><span className="block text-slate-700 font-semibold truncate mt-0.5">{c.email || 'N/D'}</span></div>
-                        </div>
-                      </div>
-
-                      <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/60 flex gap-1.5">
-                        <button onClick={() => { setMostrarTodosPresupuestosCliente(false); setClienteSeleccionadoParaVer(c); }} className="flex-1 h-7 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-bold transition flex items-center justify-center gap-1">
-                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h9l3 3v15H6z"/><path d="M9 11h6M9 14h6M9 17h4"/></svg> Ver / PDF
-                        </button>
-                        <button onClick={() => setClienteEnEdicion(c)} className="flex-1 h-7 rounded-md bg-white hover:bg-slate-100 text-slate-700 text-[9px] font-bold transition flex items-center justify-center gap-1 border border-slate-200">
-                          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg> Editar
-                        </button>
-                        <button type="button" onClick={() => eliminarCliente(c.cliente_id, c.nombre_razon_social)} title="Eliminar cliente" aria-label={`Eliminar cliente ${c.nombre_razon_social}`} className="w-7 h-7 rounded-md bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-200 hover:border-red-200 transition flex items-center justify-center shrink-0">
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                {totalPaginasClientes > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1">
-                    <p className="text-[9px] text-slate-500">
-                      Mostrando {inicioClientes + 1}–{Math.min(inicioClientes + porPaginaClientes, clientesFiltrados.length)} de {clientesFiltrados.length} clientes
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setPaginaClientes(Math.max(1, paginaClientesActual - 1))}
-                        disabled={paginaClientesActual === 1}
-                        className="h-7 px-2.5 rounded-md border border-slate-200 bg-white text-[9px] font-bold text-slate-600 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                      >
-                        ‹ Anterior
-                      </button>
-                      {Array.from({ length: totalPaginasClientes }, (_, i) => i + 1).map((pagina) => (
-                        <button
-                          key={pagina}
-                          type="button"
-                          onClick={() => setPaginaClientes(pagina)}
-                          className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaClientesActual === pagina ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
-                        >
-                          {pagina}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => setPaginaClientes(Math.min(totalPaginasClientes, paginaClientesActual + 1))}
-                        disabled={paginaClientesActual === totalPaginasClientes}
-                        className="h-7 px-2.5 rounded-md border border-slate-200 bg-white text-[9px] font-bold text-slate-600 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 transition"
-                      >
-                        Siguiente ›
-                      </button>
-                    </div>
-                  </div>
-                )}
-                </>
-              )}
             </div>
           )}
           {activeTab === 'configuracion' && (
@@ -2765,22 +2564,22 @@ useEffect(() => {
             </div>
           )}
           {activeTab === 'perfil' && (
-            <div className="max-w-[1180px] mx-auto">
-              <form onSubmit={guardarPerfilManual} className="space-y-5">
+            <div className="max-w-5xl mx-auto">
+              <form onSubmit={guardarPerfilManual} className="space-y-3">
                 {/* DATOS PROFESIONALES */}
-                <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,.04)] overflow-hidden">
-                  <div className="p-5 sm:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="p-3.5">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Nombre o Razón Social</label>
-                        <input type="text" required className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.nombre} onChange={e => setPerfilForm({ ...perfilForm, nombre: e.target.value })} />
+                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Nombre o Razón Social</label>
+                        <input type="text" required className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.nombre} onChange={e => setPerfilForm({ ...perfilForm, nombre: e.target.value })} />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">CUIT / DNI</label>
-                        <input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium font-mono text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.cuit_cuil} onChange={e => setPerfilForm({ ...perfilForm, cuit_cuil: e.target.value })} placeholder="20-12345678-9" />
+                        <label className="block text-[9px] font-bold text-slate-600 mb-1">CUIT / DNI</label>
+                        <input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold font-mono text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.cuit_cuil} onChange={e => setPerfilForm({ ...perfilForm, cuit_cuil: e.target.value })} placeholder="20-12345678-9" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Rubro / Oficio</label>
+                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Rubro / Oficio</label>
                         <div className="relative">
                           <select className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 pr-7 font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white focus:border-blue-500 transition" value={perfilForm.oficio_rubro || 'Servicios Náuticos'} onChange={e => setPerfilForm({ ...perfilForm, oficio_rubro: e.target.value })}>
                             {LISTA_RUBROS_ARGENTINA.map((r, i) => <option key={i} value={r}>{r}</option>)}
@@ -2789,9 +2588,9 @@ useEffect(() => {
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-2.5">
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Condición Tributaria</label>
+                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Condición Tributaria</label>
                         <div className="relative">
                           <select className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 pr-7 font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white focus:border-blue-500 transition" value={perfilForm.condicion_iva} onChange={e => setPerfilForm({ ...perfilForm, condicion_iva: e.target.value })}>
                             <option value="Informal / Particular (&quot;En negro&quot;)">Informal / Particular ("En negro")</option>
@@ -2803,27 +2602,27 @@ useEffect(() => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Teléfono</label>
-                        <input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.telefono} onChange={e => setPerfilForm({ ...perfilForm, telefono: e.target.value })} placeholder="+54 9 11..." />
+                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Teléfono</label>
+                        <input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.telefono} onChange={e => setPerfilForm({ ...perfilForm, telefono: e.target.value })} placeholder="+54 9 11..." />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                      <div className="md:col-span-2"><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Dirección</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.direccion || ''} placeholder="Calle y número" onChange={e => setPerfilForm({ ...perfilForm, direccion: e.target.value })} /></div>
-                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Localidad</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.localidad || ''} placeholder="Localidad" onChange={e => setPerfilForm({ ...perfilForm, localidad: e.target.value })} /></div>
-                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Código Postal</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.codigo_postal || ''} placeholder="3000" onChange={e => setPerfilForm({ ...perfilForm, codigo_postal: e.target.value })} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 mt-2.5">
+                      <div className="md:col-span-2"><label className="block text-[9px] font-bold text-slate-600 mb-1">Dirección</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.direccion || ''} placeholder="Calle y número" onChange={e => setPerfilForm({ ...perfilForm, direccion: e.target.value })} /></div>
+                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Localidad</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.localidad || ''} placeholder="Localidad" onChange={e => setPerfilForm({ ...perfilForm, localidad: e.target.value })} /></div>
+                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Código Postal</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.codigo_postal || ''} placeholder="3000" onChange={e => setPerfilForm({ ...perfilForm, codigo_postal: e.target.value })} /></div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Provincia</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.provincia || ''} placeholder="Santa Fe" onChange={e => setPerfilForm({ ...perfilForm, provincia: e.target.value })} /></div>
-                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Email profesional</label><input type="email" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.email || ''} placeholder="contacto@empresa.com" onChange={e => setPerfilForm({ ...perfilForm, email: e.target.value })} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-2.5">
+                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Provincia</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.provincia || ''} placeholder="Santa Fe" onChange={e => setPerfilForm({ ...perfilForm, provincia: e.target.value })} /></div>
+                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Email profesional</label><input type="email" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.email || ''} placeholder="contacto@empresa.com" onChange={e => setPerfilForm({ ...perfilForm, email: e.target.value })} /></div>
                     </div>
-                    {requiereIIBB && <div className="mt-2.5"><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Ingresos Brutos (IIBB)</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.iibb || ''} placeholder="901-889900-1" onChange={e => setPerfilForm({ ...perfilForm, iibb: e.target.value })} /></div>}
+                    {requiereIIBB && <div className="mt-2.5"><label className="block text-[9px] font-bold text-slate-600 mb-1">Ingresos Brutos (IIBB)</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.iibb || ''} placeholder="901-889900-1" onChange={e => setPerfilForm({ ...perfilForm, iibb: e.target.value })} /></div>}
                   </div>
                 </section>
 
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
+                    className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
                   >
                     Guardar datos 🚀
                   </button>
@@ -2838,7 +2637,7 @@ useEffect(() => {
 
       {/* MODAL CLIENTE */}
       {showModalCliente && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-3 z-[110] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-3 z-[70] overflow-y-auto">
           <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
             <div className="bg-[#0b1329] text-white px-4 py-3 flex justify-between items-center border-b border-slate-800 flex-shrink-0">
               <div>
@@ -2944,7 +2743,7 @@ useEffect(() => {
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
+                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
                 >
                   Guardar Cliente 🚀
                 </button>
@@ -3103,7 +2902,7 @@ useEffect(() => {
 
       {/* GENERADOR DE PRESUPUESTO — WORKSPACE RESPONSIVE */}
       {showModalPresupuesto && (
-        <div className="budget-generator mi-oficio-ui fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center overflow-hidden">
+        <div className="budget-generator mi-oficio-ui fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center overflow-hidden">
           <div className="w-full h-full sm:h-[92vh] sm:max-h-[860px] sm:max-w-[1080px] bg-[#f7f8fa] sm:rounded-2xl shadow-[0_24px_80px_rgba(15,23,42,.28)] border border-white/70 overflow-hidden flex flex-col">
             {(() => {
               const subtotal = nuevoPresupuesto.items.reduce((acc, i) => acc + (Number(i.cantidad || 0) * Number(i.precio_unitario || 0)), 0);
@@ -3305,7 +3104,7 @@ useEffect(() => {
                                   <div className="p-4 space-y-4">
                                     <div><p className="label">Cliente</p><p className="text-[11px] font-bold text-slate-900">{nuevoPresupuesto.cliente || 'Sin cliente'}</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.email || nuevoPresupuesto.telefono || 'Sin datos de contacto'}</p></div>
                                     <div className="border-t border-slate-100 pt-4"><p className="label">Conceptos</p><div className="space-y-2">{nuevoPresupuesto.items.map((item,index)=><div key={index} className="flex justify-between gap-3 text-[9px]"><span className="text-slate-600 truncate">{item.descripcion || 'Sin descripción'} × {item.cantidad}</span><span className="font-semibold text-slate-800 whitespace-nowrap">$ {(item.cantidad*item.precio_unitario).toLocaleString('es-AR')}</span></div>)}</div></div>
-                                    <div className="border-t border-slate-100 pt-4"><p className="label">Condiciones</p><div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><p className="text-[9px] font-semibold text-slate-800">Ejecución</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.tiempo_ejecucion}</p></div><div><p className="text-[9px] font-semibold text-slate-800">Validez</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.validez_dias} días</p></div><div><p className="text-[9px] font-semibold text-slate-800">Pago</p><p className="text-[9px] text-slate-400 mt-0.5 break-words">{nuevoPresupuesto.forma_pago}</p></div></div></div>
+                                    <div className="border-t border-slate-100 pt-4"><p className="label">Condiciones</p><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><div><p className="text-[9px] font-semibold text-slate-800">Ejecución</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.tiempo_ejecucion}</p></div><div><p className="text-[9px] font-semibold text-slate-800">Validez</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.validez_dias} días</p></div><div><p className="text-[9px] font-semibold text-slate-800">Pago</p><p className="text-[9px] text-slate-400 mt-0.5 break-words">{nuevoPresupuesto.forma_pago}</p></div></div></div>
                                   </div>
                                 </div>
                                 <div className="bg-slate-950 text-white rounded-xl p-4 self-start">
@@ -3332,7 +3131,7 @@ useEffect(() => {
                     </div>
 
                     {/* FOOTER */}
-                    <footer className="budget-footer sticky bottom-0 z-30 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(15,23,42,.08)]">
+                    <footer className="budget-footer bg-white border-t border-slate-200">
                       <button type="button" onClick={() => setShowModalPresupuesto(false)} className="budget-action budget-cancel border border-transparent bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition">Cancelar</button>
                       <div className="budget-actions">
                         <button type="button" onClick={guardarBorrador} className="budget-action border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition">Guardar</button>
@@ -3495,31 +3294,26 @@ useEffect(() => {
 
       {showModalPremium && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3 sm:p-5"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
           onClick={() => {
             if (!procesandoPago) setShowModalPremium(false);
           }}
         >
           <div
-            className="flex max-h-[calc(100dvh-24px)] w-full max-w-[430px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_70px_rgba(15,23,42,.28)]"
+            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* Cabecera compacta */}
-            <div className="flex shrink-0 items-start justify-between border-b border-slate-100 px-4 py-3.5 sm:px-5">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
-                    <IconoPanel name="sparkles" className="h-3.5 w-3.5" />
-                  </span>
-                  <div>
-                    <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-600">
-                      MiOficio Premium
-                    </p>
-                    <h2 className="mt-0.5 text-[16px] font-extrabold tracking-[-0.02em] text-slate-950">
-                      Elegí tu plan
-                    </h2>
-                  </div>
-                </div>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600">
+                  MiOficio Pro
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-slate-900">
+                  Activar Premium
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Accedé a todas las herramientas Premium.
+                </p>
               </div>
 
               <button
@@ -3527,101 +3321,96 @@ useEffect(() => {
                 onClick={() => {
                   if (!procesandoPago) setShowModalPremium(false);
                 }}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-lg px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                 aria-label="Cerrar"
               >
                 ×
               </button>
             </div>
 
-            {/* Contenido */}
-            <div className="min-h-0 overflow-y-auto px-4 py-3.5 sm:px-5">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'daily', label: 'Diario', price: '$ 399', duration: '1 día' },
-                  { id: 'weekly', label: 'Semanal', price: '$ 2.799', duration: '7 días' },
-                  { id: 'monthly', label: 'Mensual', price: '$ 11.999', duration: '30 días' },
-                  { id: 'yearly', label: 'Anual', price: '$ 139.999', duration: '365 días', featured: true },
-                ].map((plan) => (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    onClick={() =>
-                      setPlanPremium(
-                        plan.id as 'daily' | 'weekly' | 'monthly' | 'yearly'
-                      )
-                    }
-                    className={`relative min-h-[76px] rounded-xl border p-3 text-left transition ${
-                      planPremium === plan.id
-                        ? 'border-blue-600 bg-blue-50/70 ring-1 ring-blue-600'
-                        : 'border-slate-200 bg-white hover:border-blue-300'
-                    }`}
-                  >
-                    {plan.featured && (
-                      <span className="absolute -right-1.5 -top-2 rounded-full bg-blue-600 px-2 py-0.5 text-[6px] font-extrabold uppercase tracking-wide text-white shadow-sm">
-                        Más elegido
-                      </span>
-                    )}
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[9px] font-bold text-slate-700">{plan.label}</p>
-                      {planPremium === plan.id && (
-                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white">
-                          <IconoPanel name="check" className="h-2.5 w-2.5" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-[15px] font-extrabold tracking-[-0.02em] text-slate-950">
-                      {plan.price} <span className="text-[8px] font-semibold text-slate-400">ARS</span>
-                    </p>
-                    <p className="mt-0.5 text-[7px] text-slate-400">{plan.duration}</p>
-                  </button>
-                ))}
-              </div>
+            <div className="mb-4 space-y-3">
+  <p className="text-xs font-semibold text-slate-700">
+    Elegí tu plan Premium
+  </p>
 
-              {/* Resumen del plan seleccionado + checkout, en un único bloque */}
-              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                      Tu plan
-                    </p>
-                    <p className="mt-1 truncate text-[12px] font-extrabold text-slate-900">
-                      MiOficio Premium · {
-                        planPremium === 'daily'
-                          ? 'Diario'
-                          : planPremium === 'weekly'
-                            ? 'Semanal'
-                            : planPremium === 'yearly'
-                              ? 'Anual'
-                              : 'Mensual'
-                      }
-                    </p>
-                    <p className="mt-0.5 text-[7px] text-slate-400">
-                      Activación después de confirmar el pago
-                    </p>
+  <div className="grid grid-cols-2 gap-2">
+    {[
+      { id: 'daily', label: 'Diario', price: '$ 399', duration: '1 día' },
+      { id: 'weekly', label: 'Semanal', price: '$ 2.799', duration: '7 días' },
+      { id: 'monthly', label: 'Mensual', price: '$ 11.999', duration: '30 días' },
+      { id: 'yearly', label: 'Anual', price: '$ 139.999', duration: '365 días' },
+    ].map((plan) => (
+      <button
+        key={plan.id}
+        type="button"
+        onClick={() =>
+          setPlanPremium(
+            plan.id as 'daily' | 'weekly' | 'monthly' | 'yearly'
+          )
+        }
+        className={`rounded-xl border p-3 text-left transition ${
+          planPremium === plan.id
+            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+            : 'border-slate-200 bg-white hover:border-blue-300'
+        }`}
+      >
+        <p className="text-xs font-semibold text-slate-800">
+          {plan.label}
+        </p>
+        <p className="mt-1 text-base font-bold text-slate-900">
+          {plan.price} ARS
+        </p>
+        <p className="mt-0.5 text-[10px] text-slate-500">
+          {plan.duration}
+        </p>
+      </button>
+    ))}
+  </div>
+
+  <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-sm font-semibold text-slate-800">
+          MiOficio Premium
+        </p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Pago seguro procesado por dLocal.
+        </p>
+      </div>
+
+      <span className="whitespace-nowrap text-lg font-bold text-slate-900">
+        {planPremium === 'daily'
+          ? '$ 399 ARS'
+          : planPremium === 'weekly'
+            ? '$ 2.799 ARS'
+            : planPremium === 'yearly'
+              ? '$ 139.999 ARS'
+              : '$ 11.999 ARS'}
+      </span>
+    </div>
+  </div>
+</div>
+            <div className="space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-blue-600">
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 10h18" />
+                    </svg>
                   </div>
-                  <p className="shrink-0 text-[15px] font-extrabold text-slate-950">
-                    {planPremium === 'daily'
-                      ? '$ 399'
-                      : planPremium === 'weekly'
-                        ? '$ 2.799'
-                        : planPremium === 'yearly'
-                          ? '$ 139.999'
-                          : '$ 11.999'}
-                    <span className="ml-0.5 text-[7px] font-semibold text-slate-400">ARS</span>
-                  </p>
-                </div>
-
-                <div className="my-3 h-px bg-slate-200" />
-
-                <div className="flex items-start gap-2.5">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-slate-200">
-                    <IconoPanel name="payments" className="h-3.5 w-3.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[8px] font-bold text-slate-700">Checkout seguro</p>
-                    <p className="mt-0.5 text-[7px] leading-3.5 text-slate-400">
-                      El pago se completa en el checkout seguro de dLocal. MiOficio no almacena los datos de tu tarjeta.
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700">
+                      Checkout seguro
+                    </p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                      Al continuar, vas a ser dirigido al checkout seguro de dLocal para completar los datos del medio de pago.
                     </p>
                   </div>
                 </div>
@@ -3630,34 +3419,33 @@ useEffect(() => {
               {errorTarjeta && (
                 <div
                   role="alert"
-                  className="mt-2.5 rounded-lg bg-red-50 px-3 py-2 text-[8px] leading-3.5 text-red-700"
+                  className="rounded-xl bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-700"
                 >
                   {errorTarjeta}
                 </div>
               )}
-            </div>
 
-            {/* CTA fijo dentro del modal: siempre visible en móvil */}
-            <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3.5 sm:px-5">
+              <p className="text-[10px] leading-4 text-slate-400">
+                MiOficio no almacena los datos de tu tarjeta. dLocal procesa la información necesaria para realizar el pago.
+              </p>
+
               <button
                 type="button"
                 onClick={pagarPremiumConTarjeta}
                 disabled={procesandoPago}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-[10px] font-extrabold text-white shadow-[0_6px_18px_rgba(37,99,235,.2)] transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {procesandoPago ? 'Preparando checkout…' : 'Continuar al pago'}
-                {!procesandoPago && <IconoPanel name="arrow" className="h-3.5 w-3.5" />}
+                {procesandoPago
+                  ? 'Preparando checkout…'
+                  : 'Continuar al pago →'}
               </button>
-              <p className="mt-1.5 text-center text-[6.5px] text-slate-400">
-                Pago seguro procesado por dLocal
-              </p>
             </div>
           </div>
         </div>
       )}
 
       {/* MOBILE NAV — 5 acciones principales; Premium vive en la cabecera */}
-      <nav className={`${showModalPresupuesto ? 'hidden' : 'lg:hidden'} fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]`}>
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]">
         <div className="mx-auto w-full max-w-[520px] px-2 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))]">
           <div className="grid grid-cols-5 items-stretch gap-1.5">
             <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'dashboard' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
