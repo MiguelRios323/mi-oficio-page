@@ -212,59 +212,22 @@ const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', '
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-function IconoPanel({
-  name,
-  className = 'h-4 w-4',
-}: {
-  name:
-    | 'home' | 'clients' | 'quotes' | 'settings' | 'profile' | 'plus'
-    | 'search' | 'logout' | 'identity' | 'payments' | 'series'
-    | 'calendar' | 'chevron' | 'check' | 'chart' | 'lightbulb'
-    | 'arrow' | 'menu' | 'bell' | 'sparkles' | 'wallet' | 'document'
-    | 'trend' | 'more' | 'filter';
-  className?: string;
-}) {
-  const common = {
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.75,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    className,
-    'aria-hidden': true,
-  };
-
+function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'; className?: string }) {
+  const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
   switch (name) {
-    case 'home': return <svg {...common}><path d="m3.5 10.5 8.5-7 8.5 7"/><path d="M5.5 9.5v9.25A1.75 1.75 0 0 0 7.25 20.5h9.5a1.75 1.75 0 0 0 1.75-1.75V9.5"/><path d="M9.5 20.5v-5h5v5"/></svg>;
-    case 'clients': return <svg {...common}><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5c.7-3.1 2.6-4.7 5.5-4.7s4.8 1.6 5.5 4.7"/><path d="M15.5 5.8a3 3 0 0 1 0 5.7"/><path d="M17 15.1c1.9.5 3.1 1.9 3.5 4.4"/></svg>;
-    case 'quotes':
-    case 'document': return <svg {...common}><path d="M7 3.75h7.25L19 8.5v11.75A1.75 1.75 0 0 1 17.25 22h-10A1.75 1.75 0 0 1 5.5 20.25v-14A2.5 2.5 0 0 1 8 3.75Z"/><path d="M14 3.75v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/></svg>;
-    case 'payments':
-    case 'wallet': return <svg {...common}><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M15 14h3.5"/><circle cx="15" cy="14" r=".75" fill="currentColor" stroke="none"/></svg>;
-    case 'series': return <svg {...common}><path d="M6 4.5h12M5 8.5h14M7 12.5h10M8.5 16.5h7M10 20.5h4"/></svg>;
-    case 'identity': return <svg {...common}><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M6.5 16c.6-1.6 1.4-2.3 2.5-2.3s1.9.7 2.5 2.3M14 9h3M14 12h3M14 15h2"/></svg>;
-    case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/></svg>;
-    case 'settings': return <svg {...common}><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15.2 1.1 1.9-2 2-1.9-1.1a7.7 7.7 0 0 1-2.1.9L14 21h-4l-.5-2.1a7.7 7.7 0 0 1-2.1-.9l-1.9 1.1-2-2 1.1-1.9a7.7 7.7 0 0 1-.9-2.1L1.6 12l2.1-.5a7.7 7.7 0 0 1 .9-2.1L3.5 7.5l2-2 1.9 1.1a7.7 7.7 0 0 1 2.1-.9L10 3.6h4l.5 2.1a7.7 7.7 0 0 1 2.1.9l1.9-1.1 2 2-1.1 1.9a7.7 7.7 0 0 1 .9 2.1l2.1.5-2.1.5a7.7 7.7 0 0 1-.9 2.1Z"/></svg>;
-    case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>;
-    case 'calendar': return <svg {...common}><rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg>;
-    case 'bell': return <svg {...common}><path d="M18 10a6 6 0 0 0-12 0c0 6-2.5 6.5-2.5 8h17C20.5 16.5 18 16 18 10Z"/><path d="M10 21h4"/></svg>;
-    case 'sparkles': return <svg {...common}><path d="m12 3 1.2 4.3L17.5 9l-4.3 1.2L12 14.5l-1.2-4.3L6.5 9l4.3-1.7L12 3Z"/><path d="m19 14 .6 2.2L22 17l-2.4.8L19 20l-.6-2.2L16 17l2.4-.8L19 14Z"/></svg>;
-    case 'check': return <svg {...common}><path strokeWidth="2.2" d="m5.2 12.3 4.2 4.2 9.4-9.2"/></svg>;
-    case 'chart':
-    case 'trend': return <svg {...common}><path d="M4 19.5V5M4 19.5h16"/><path d="m7 15 3-3.5 3 2 5-6"/></svg>;
-    case 'lightbulb': return <svg {...common}><path d="M8.2 14.5a6 6 0 1 1 7.6 0c-.9.7-1.3 1.5-1.3 2.5H9.5c0-1-.4-1.8-1.3-2.5Z"/><path d="M10 20h4M10.5 17h3"/></svg>;
-    case 'chevron': return <svg {...common}><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/></svg>;
-    case 'arrow': return <svg {...common}><path d="M4 12h15M14 7l5 5-5 5"/></svg>;
-    case 'plus': return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
-    case 'more': return <svg {...common}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>;
-    case 'filter': return <svg {...common}><path d="M4 6h16M7 12h10M10 18h4"/></svg>;
-    case 'menu': return <svg {...common}><path d="M4 7h16M4 12h16M4 17h16"/></svg>;
-    case 'logout': return <svg {...common}><path d="M10 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19H10"/><path d="m13 8 4 4-4 4M17 12H9"/></svg>;
-    default: return null;
+    case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
+    case 'clients': return <svg {...common}><circle cx="9" cy="8" r="3.2"/><path d="M3.2 20v-1.1a5.8 5.8 0 0 1 11.6 0V20"/><path d="M16 5.8a3.2 3.2 0 0 1 0 6.3M18 14.2a4.6 4.6 0 0 1 3 4.1V20"/></svg>;
+    case 'quotes': return <svg {...common}><path d="M6.5 3.5h8l3 3V20.5h-11z"/><path d="M14.5 3.5v4h4"/><path d="M9 12h5M9 15.5h5"/></svg>;
+    case 'settings': return <svg {...common}><path d="M12 3.5v2.2M12 18.3v2.2M4.5 12H2.8M21.2 12h-1.7M6.1 6.1 4.9 4.9M19.1 19.1l-1.2-1.2M17.9 6.1l1.2-1.2M4.9 19.1l1.2-1.2"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1.1"/></svg>;
+    case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3.1"/><path d="M5 20.5a7 7 0 0 1 14 0"/><path d="M18.5 4.8v3.4M16.8 6.5h3.4"/></svg>;
+    case 'plus': return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>;
+    case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.4 4.4"/></svg>;
+    case 'logout': return <svg {...common}><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"/></svg>;
+    case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
+    case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
+    case 'series': return <svg {...common}><path d="M7 4v16M17 4v16M4 7h6M14 7h6M4 17h6M14 17h6"/></svg>;
   }
 }
-
 
 function IconoEstadoPresupuesto({ estado, className = 'w-3.5 h-3.5' }: { estado: string; className?: string }) {
   const common = { className, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -572,10 +535,6 @@ function LandingPage({ onGoToLogin, onGoToRegister }: { onGoToLogin: () => void;
         </div>
       </header>
 
-      <style>{`
-        .mioficio-dashboard-modern svg { vector-effect: non-scaling-stroke; }
-        .mioficio-dashboard-modern button { -webkit-tap-highlight-color: transparent; }
-      `}</style>
       <main className="relative z-10">
         <section className="max-w-7xl mx-auto px-5 sm:px-6 pt-20 sm:pt-28 pb-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.07] px-3.5 py-2 text-[10px] sm:text-[11px] font-bold text-blue-300">
@@ -2225,9 +2184,6 @@ useEffect(() => {
               <span className="flex-1 text-left">Presupuestos</span>
               {presupuestos.length > 0 && <span className="min-w-5 h-4.5 px-1.5 rounded-md bg-white/10 text-[10px] text-slate-300 flex items-center justify-center">{presupuestos.length}</span>}
             </button>
-            <button onClick={() => setActiveTab('configuracion')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'configuracion' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
-              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="settings" className="w-4 h-4" /></span><span>Configuración</span>
-            </button>
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
               <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
             </button>
@@ -2286,122 +2242,265 @@ useEffect(() => {
               )}
               <span className="whitespace-nowrap">{perfilForm.es_premium ? 'PREMIUM ACTIVO' : 'PREMIUM'}</span>
             </button>
-            <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="hidden sm:flex h-8 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[8px] font-extrabold text-white shadow-sm transition hover:bg-blue-700">
-              <IconoPanel name="plus" className="h-3.5 w-3.5" /> Nuevo presupuesto
-            </button>
             <button type="button" onClick={onLogout} title="Cerrar sesión" aria-label="Cerrar sesión" className="lg:hidden h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition">
               <IconoPanel name="logout" className="w-4 h-4" />
             </button>
           </div>
-        </header>
-        <div className="px-3 py-3 sm:px-5 sm:py-4 lg:px-6 lg:py-5">
           {activeTab === 'dashboard' && (
-            <div className="mioficio-dashboard-modern mx-auto w-full max-w-[1240px] space-y-4">
-              <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0">
-                  <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-blue-600">Resumen</p>
-                  <h2 className="mt-1 text-[22px] font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[25px]">
-                    Buenos días, {((perfilForm.nombre || user.name || 'Miguel').trim().split(/\s+/)[0])}
-                  </h2>
-                  <p className="mt-1 text-[9px] text-slate-500 sm:text-[10px]">Una vista general de la actividad de tu negocio.</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-                  <button type="button" onClick={() => setShowModalCliente(true)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[8px] font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                    <IconoPanel name="clients" className="h-3.5 w-3.5 text-slate-500"/> Nuevo cliente
-                  </button>
-                  <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[8px] font-bold text-white shadow-sm transition hover:bg-blue-700">
-                    <IconoPanel name="plus" className="h-3.5 w-3.5"/> Nuevo presupuesto
-                  </button>
-                </div>
-              </section>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button aria-label="Nuevo cliente" title="Nuevo cliente" onClick={() => setShowModalCliente(true)} className="group h-8 w-8 sm:w-auto sm:px-2.5 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 transition">
+                <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>
+                <span className="hidden sm:inline text-[10px] font-bold">+ Cliente</span>
+              </button>
+              <button aria-label="Nuevo presupuesto" title="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="h-8 w-8 sm:w-auto sm:px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-sm transition">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+                <span className="hidden sm:inline whitespace-nowrap">+ Nuevo presupuesto</span>
+              </button>
+            </div>
+          )}
+        </header>
 
+        <div className="w-full max-w-[1440px] mx-auto px-4 py-5 sm:px-6 lg:px-8 min-w-0">
+          {activeTab === 'dashboard' && (
+            <div className="mx-auto w-full max-w-[1180px] space-y-5">
               {(() => {
-                const totalPresupuestado = presupuestos.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
-                const totalCobrado = presupuestos.filter(p => p.estado === 'Pagado').reduce((acc, p) => acc + (Number(p.total) || 0), 0);
-                const aceptados = presupuestos.filter(p => p.estado === 'Aceptado' || p.estado === 'Pagado').length;
+                const nombreUsuario = (user.name || 'Usuario').trim().split(/\s+/)[0] || 'Usuario';
+                const totalPresupuestado = presupuestos.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+                const emitidos = presupuestos.length;
+                const aceptados = presupuestos.filter(p => p.estado === 'Aceptado').length;
                 const pagados = presupuestos.filter(p => p.estado === 'Pagado').length;
-                const tasaAceptacion = presupuestos.length ? Math.round((aceptados / presupuestos.length) * 100) : 0;
-                const tasaCobro = presupuestos.length ? Math.round((pagados / presupuestos.length) * 100) : 0;
-                const ultimos = [...presupuestos].sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).slice(0, 5);
-                const estadoClass = (estado?: string) => estado === 'Pagado' ? 'border-violet-200 bg-violet-50 text-violet-700' : estado === 'Aceptado' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : estado === 'Rechazado' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700';
+                const pendientes = presupuestos.filter(p => !['Aceptado', 'Pagado', 'Rechazado', 'Vencido'].includes(p.estado || 'Emitido')).length;
+                const tasaAceptacion = emitidos ? Math.round(((aceptados + pagados) / emitidos) * 100) : 0;
+                const recientes = [...presupuestos].sort((a,b) => String(b.fecha || '').localeCompare(String(a.fecha || ''))).slice(0, 5);
+
+                const icon = (type: 'wallet'|'file'|'users'|'arrow'|'check'|'clock'|'plus'|'search') => {
+                  const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.8, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className:'h-[18px] w-[18px]' };
+                  if (type === 'wallet') return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M15 14h3"/><circle cx="15" cy="14" r=".7" fill="currentColor" stroke="none"/></svg>;
+                  if (type === 'file') return <svg {...common}><path d="M7 3.5h7l4 4v13H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z"/><path d="M14 3.5v5h5M9 13h5M9 16.5h4"/></svg>;
+                  if (type === 'users') return <svg {...common}><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5c.6-3.2 2.4-4.8 5.5-4.8s4.9 1.6 5.5 4.8"/><path d="M15.5 6a3 3 0 0 1 0 5.5M17 14.5c1.9.5 3.1 2 3.5 4.5"/></svg>;
+                  if (type === 'arrow') return <svg {...common}><path d="M4 12h15"/><path d="m14 7 5 5-5 5"/></svg>;
+                  if (type === 'check') return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg>;
+                  if (type === 'clock') return <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>;
+                  if (type === 'plus') return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
+                  return <svg {...common}><circle cx="10.8" cy="10.8" r="6.2"/><path d="m16 16 4 4"/></svg>;
+                };
 
                 return (
                   <>
+                    {/* HERO — una sola jerarquía */}
+                    <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-600">MiOficio · Resumen</p>
+                        <h1 className="mt-1 text-[25px] font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[29px]">Buenos días, {nombreUsuario}</h1>
+                        <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">Todo lo importante de tu negocio, en una sola vista.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button type="button" onClick={() => setShowModalCliente(true)} className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[9px] font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                          {icon('users')}<span>Nuevo cliente</span>
+                        </button>
+                        <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-9 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[9px] font-bold text-white shadow-sm transition hover:bg-blue-700">
+                          {icon('plus')}<span>Nuevo presupuesto</span>
+                        </button>
+                      </div>
+                    </section>
+
+                    {/* KPI — tres tarjetas, sin datos inventados */}
                     <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {[
-                        {label:'Cobrado',value:`$ ${totalCobrado.toLocaleString('es-AR')}`,helper:'Ingresos confirmados',trend:'12%',icon:'payments' as const,iconBox:'bg-emerald-50 text-emerald-600'},
-                        {label:'Presupuestado',value:`$ ${totalPresupuestado.toLocaleString('es-AR')}`,helper:'Valor total emitido',trend:'8%',icon:'quotes' as const,iconBox:'bg-blue-50 text-blue-600'},
-                        {label:'Clientes',value:String(clientes.length),helper:'Clientes registrados',trend:'3',icon:'clients' as const,iconBox:'bg-violet-50 text-violet-600'}
-                      ].map(card => (
-                        <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
-                          <div className="flex items-start justify-between gap-3">
+                        {label:'Cobrado', value:`$ ${Number(totalCobrado).toLocaleString('es-AR')}`, note:'Pagos confirmados', type:'wallet' as const, tone:'emerald'},
+                        {label:'Presupuestado', value:`$ ${totalPresupuestado.toLocaleString('es-AR')}`, note:`${emitidos} documento${emitidos === 1 ? '' : 's'} emitido${emitidos === 1 ? '' : 's'}`, type:'file' as const, tone:'blue'},
+                        {label:'Clientes', value:String(clientes.length), note:'Clientes registrados', type:'users' as const, tone:'violet'}
+                      ].map(kpi => (
+                        <article key={kpi.label} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(15,23,42,.07)]">
+                          <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0">
-                              <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-slate-400">{card.label}</p>
-                              <p className="mt-1.5 truncate text-[20px] font-extrabold tracking-[-0.04em] text-slate-950 sm:text-[22px]">{card.value}</p>
-                              <div className="mt-1 flex items-center gap-1.5"><span className="text-[7px] font-bold text-emerald-600">↑ {card.trend}</span><span className="text-[7px] text-slate-400">vs. mes anterior</span></div>
+                              <p className="text-[9px] font-bold uppercase tracking-[0.11em] text-slate-400">{kpi.label}</p>
+                              <p className="mt-2 truncate text-[23px] font-extrabold tracking-[-0.045em] text-slate-950">{kpi.value}</p>
+                              <p className="mt-1 text-[8px] text-slate-400">{kpi.note}</p>
                             </div>
-                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.iconBox}`}><IconoPanel name={card.icon} className="h-4 w-4"/></span>
+                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${kpi.tone === 'emerald' ? 'bg-emerald-50 text-emerald-600' : kpi.tone === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-violet-50 text-violet-600'}`}>
+                              {icon(kpi.type)}
+                            </span>
                           </div>
-                          <p className="mt-3 text-[7px] text-slate-400">{card.helper}</p>
                         </article>
                       ))}
                     </section>
 
-                    <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1.45fr_.55fr]">
-                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
-                        <div className="flex items-center justify-between gap-3">
-                          <div><h3 className="text-[11px] font-extrabold text-slate-950">Flujo comercial</h3><p className="mt-0.5 text-[7px] text-slate-400">Seguimiento de tus presupuestos</p></div>
-                          <button type="button" className="rounded-lg border border-slate-200 px-2 py-1 text-[7px] font-semibold text-slate-500">Este mes <span className="ml-1">⌄</span></button>
+                    {/* FLUJO — único bloque de seguimiento */}
+                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04)] sm:p-5">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <h2 className="text-[13px] font-extrabold text-slate-950">Flujo de presupuestos</h2>
+                          <p className="mt-0.5 text-[8px] text-slate-400">Del primer contacto al cobro.</p>
                         </div>
-                        <div className="mt-5 grid grid-cols-3 gap-2">
-                          {[
-                            {label:'Emitidos',value:presupuestos.length,icon:'quotes' as const,tone:'bg-blue-50 text-blue-600'},
-                            {label:'Aceptados',value:aceptados,icon:'check' as const,tone:'bg-emerald-50 text-emerald-600'},
-                            {label:'Pagados',value:pagados,icon:'payments' as const,tone:'bg-violet-50 text-violet-600'}
-                          ].map((step,index) => (
-                            <div key={step.label} className="relative rounded-xl bg-slate-50 p-3">
-                              {index < 2 && <span className="absolute right-[-8px] top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-slate-300 sm:block">→</span>}
-                              <div className="flex items-center gap-2.5"><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${step.tone}`}><IconoPanel name={step.icon} className="h-4 w-4"/></span><div><p className="text-[15px] font-extrabold text-slate-950">{step.value}</p><p className="text-[7px] font-medium text-slate-500">{step.label}</p></div></div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-4 border-t border-slate-100 pt-3">
-                          <div className="flex items-center justify-between"><span className="text-[7px] font-semibold text-slate-500">Tasa de aceptación</span><span className="text-[8px] font-extrabold text-slate-900">{tasaAceptacion}%</span></div>
-                          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{width:`${tasaAceptacion}%`}}/></div>
-                        </div>
-                      </article>
+                        {emitidos > 0 && <span className="w-fit rounded-full bg-slate-50 px-2 py-1 text-[7px] font-bold text-slate-500">{tasaAceptacion}% de aceptación</span>}
+                      </div>
 
-                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
-                        <div className="flex items-center justify-between"><div><h3 className="text-[11px] font-extrabold text-slate-950">Resumen</h3><p className="mt-0.5 text-[7px] text-slate-400">Indicadores del período</p></div><IconoPanel name="chart" className="h-4 w-4 text-blue-500"/></div>
-                        <div className="mt-4 space-y-3">
-                          <div><div className="flex items-center justify-between"><span className="text-[7px] text-slate-500">Presupuestos aceptados</span><b className="text-[8px] text-slate-900">{aceptados}</b></div><div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{width:`${tasaAceptacion}%`}}/></div></div>
-                          <div><div className="flex items-center justify-between"><span className="text-[7px] text-slate-500">Presupuestos pagados</span><b className="text-[8px] text-slate-900">{pagados}</b></div><div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{width:`${tasaCobro}%`}}/></div></div>
-                          <div className="grid grid-cols-2 gap-2 pt-1"><div className="rounded-lg bg-slate-50 p-2"><p className="text-[6.5px] text-slate-400">Presupuestado</p><p className="mt-1 truncate text-[9px] font-extrabold text-slate-950">$ {totalPresupuestado.toLocaleString('es-AR')}</p></div><div className="rounded-lg bg-slate-50 p-2"><p className="text-[6.5px] text-slate-400">Cobrado</p><p className="mt-1 truncate text-[9px] font-extrabold text-slate-950">$ {totalCobrado.toLocaleString('es-AR')}</p></div></div>
-                        </div>
-                      </article>
+                      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-0">
+                        {[
+                          {label:'Emitidos',value:emitidos,type:'file' as const,tone:'blue'},
+                          {label:'Aceptados',value:aceptados + pagados,type:'check' as const,tone:'emerald'},
+                          {label:'Pagados',value:pagados,type:'wallet' as const,tone:'violet'}
+                        ].map((step,index) => (
+                          <div key={step.label} className="relative flex items-center rounded-xl bg-slate-50 px-3 py-3 sm:rounded-none sm:bg-transparent sm:px-4">
+                            {index > 0 && <span className="absolute -left-2 hidden text-slate-300 sm:block">{icon('arrow')}</span>}
+                            <span className={`mr-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${step.tone === 'blue' ? 'bg-blue-50 text-blue-600' : step.tone === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-violet-50 text-violet-600'}`}>{icon(step.type)}</span>
+                            <div><p className="text-[17px] font-extrabold text-slate-950">{step.value}</p><p className="text-[7px] font-bold uppercase tracking-[0.08em] text-slate-400">{step.label}</p></div>
+                          </div>
+                        ))}
+                      </div>
                     </section>
 
-                    <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
-                      <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h3 className="text-[11px] font-extrabold text-slate-950">Presupuestos recientes</h3><p className="mt-0.5 text-[7px] text-slate-400">Últimos documentos generados</p></div><button type="button" onClick={()=>setActiveTab('presupuestos')} className="text-[7px] font-bold text-blue-600">Ver todos →</button></div>
-                        <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[600px] text-left"><thead className="bg-slate-50"><tr className="text-[6.5px] font-semibold uppercase tracking-[0.04em] text-slate-400"><th className="px-4 py-2">N.º</th><th className="px-4 py-2">Cliente</th><th className="px-4 py-2">Fecha</th><th className="px-4 py-2">Estado</th><th className="px-4 py-2 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-100">{ultimos.map(p=><tr key={p.presupuesto_id} className="text-[7px] text-slate-600 transition hover:bg-slate-50"><td className="px-4 py-2 font-bold text-slate-800">{p.numero_presupuesto}</td><td className="px-4 py-2 font-semibold text-slate-800">{p.cliente}</td><td className="px-4 py-2">{p.fecha}</td><td className="px-4 py-2"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span></td><td className="px-4 py-2 text-right font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</td></tr>)}</tbody></table></div>
-                        <div className="divide-y divide-slate-100 sm:hidden">{ultimos.map(p=><button key={p.presupuesto_id} type="button" onClick={()=>setActiveTab('presupuestos')} className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition hover:bg-slate-50"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><IconoPanel name="quotes" className="h-3.5 w-3.5"/></span><span className="min-w-0 flex-1"><span className="block truncate text-[8px] font-bold text-slate-900">{p.cliente}</span><span className="mt-0.5 block truncate text-[6.5px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</span></span><span className="shrink-0 text-right"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span><span className="mt-0.5 block text-[8px] font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</span></span></button>)}</div>
-                      </article>
+                    {/* RECIENTES — tabla única, sin sidebar de acciones */}
+                    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)]">
+                      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 sm:px-5">
+                        <div><h2 className="text-[13px] font-extrabold text-slate-950">Presupuestos recientes</h2><p className="mt-0.5 text-[8px] text-slate-400">Los últimos documentos de tu negocio.</p></div>
+                        <button type="button" onClick={() => setActiveTab('presupuestos')} className="flex items-center gap-1 text-[8px] font-bold text-blue-600 hover:text-blue-700">Ver todos {icon('arrow')}</button>
+                      </div>
 
-                      <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
-                        <h3 className="text-[11px] font-extrabold text-slate-950">Acciones rápidas</h3>
-                        <p className="mt-0.5 text-[7px] text-slate-400">Atajos para trabajar más rápido.</p>
-                        <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 text-[8px] font-bold text-white transition hover:bg-blue-700"><IconoPanel name="plus" className="h-3.5 w-3.5"/> Nuevo presupuesto</button>
-                        <button type="button" onClick={() => setShowModalCliente(true)} className="mt-2 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white text-[8px] font-bold text-slate-700 transition hover:bg-slate-50"><IconoPanel name="clients" className="h-3.5 w-3.5 text-slate-500"/> Nuevo cliente</button>
-                        <div className="mt-3 rounded-lg bg-blue-50 p-2.5"><div className="flex items-start gap-2"><IconoPanel name="lightbulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600"/><div><p className="text-[7px] font-bold text-slate-800">Consejo</p><p className="mt-0.5 text-[6.5px] leading-3 text-slate-500">Mantené tus presupuestos actualizados para tener una visión clara del negocio.</p></div></div></div>
-                      </aside>
+                      {recientes.length === 0 ? (
+                        <div className="px-5 py-12 text-center">
+                          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-50 text-slate-400">{icon('file')}</div>
+                          <p className="mt-3 text-[10px] font-bold text-slate-700">Todavía no hay presupuestos</p>
+                          <p className="mt-1 text-[8px] text-slate-400">Creá tu primer presupuesto para comenzar.</p>
+                          <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-4 h-8 rounded-lg bg-blue-600 px-3 text-[8px] font-bold text-white hover:bg-blue-700">Crear presupuesto</button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="hidden overflow-x-auto md:block">
+                            <table className="w-full text-left">
+                              <thead className="bg-slate-50/80"><tr className="text-[7px] font-bold uppercase tracking-[0.08em] text-slate-400"><th className="px-5 py-2.5">N.º</th><th className="px-5 py-2.5">Cliente</th><th className="px-5 py-2.5">Fecha</th><th className="px-5 py-2.5">Estado</th><th className="px-5 py-2.5 text-right">Total</th></tr></thead>
+                              <tbody className="divide-y divide-slate-100">{recientes.map(p => <tr key={p.presupuesto_id} className="text-[8px] text-slate-600 hover:bg-slate-50/70"><td className="px-5 py-3 font-bold text-slate-700">{p.numero_presupuesto}</td><td className="px-5 py-3 font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td><td className="px-5 py-3 text-slate-400">{p.fecha}</td><td className="px-5 py-3"><SelectorEstadoPresupuesto estado={p.estado || 'Emitido'} onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)} /></td><td className="px-5 py-3 text-right font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</td></tr>)}</tbody>
+                            </table>
+                          </div>
+                          <div className="divide-y divide-slate-100 md:hidden">{recientes.map(p => <button key={p.presupuesto_id} type="button" onClick={() => setActiveTab('presupuestos')} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">{icon('file')}</span><span className="min-w-0 flex-1"><span className="block truncate text-[9px] font-bold text-slate-900">{p.cliente || 'Cliente sin nombre'}</span><span className="mt-0.5 block truncate text-[7px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</span></span><span className="shrink-0 text-right"><span className="block text-[9px] font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</span><span className="mt-0.5 block text-[7px] font-semibold text-slate-400">{p.estado || 'Emitido'}</span></span></button>)}</div>
+                        </>
+                      )}
                     </section>
                   </>
                 );
               })()}
             </div>
           )}
+          {activeTab === 'presupuestos' && (
+            <div className="space-y-4">
+              <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
+                <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
+                    <div>
+                      <h2 className="text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Actividad reciente</h2>
+                      <p className="mt-1.5 text-[11px] text-slate-500">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => setShowModalCliente(true)} className="h-8 px-3 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[10px] font-bold whitespace-nowrap flex items-center gap-1.5 transition">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/><path d="M19 17v4M17 19h4"/></svg>
+                        + Cliente
+                      </button>
+                      <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="h-8 px-3 rounded-md bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700 whitespace-nowrap flex items-center gap-1.5 transition shadow-sm">
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                        + Nuevo presupuesto
+                      </button>
+                    </div>
+                  </div>
 
+                  <div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+                      {['Todos','Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => (
+                        <button
+                          key={estado}
+                          type="button"
+                          onClick={() => { setFiltroEstadoPresupuesto(estado); setPaginaPresupuestos(1); }}
+                          className={`h-7 px-2.5 rounded-md text-[9px] font-bold whitespace-nowrap border transition ${filtroEstadoPresupuesto === estado ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+                        >
+                          {estado}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="h-8 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 lg:w-64 shrink-0">
+                      <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                      <input value={busquedaPresupuesto} onChange={e => { setBusquedaPresupuesto(e.target.value); setPaginaPresupuestos(1); }} className="w-full bg-transparent outline-none text-[10px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar Nº, cliente o concepto..." />
+                    </div>
+                  </div>
+                </div>
+                {(() => {
+                  const listaCompleta = presupuestos.filter(p => {
+                    const q = busquedaPresupuesto.toLowerCase().trim();
+                    const coincideBusqueda = !q || p.numero_presupuesto.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
+                    const coincideEstado = filtroEstadoPresupuesto === 'Todos' || p.estado === filtroEstadoPresupuesto;
+                    return coincideBusqueda && coincideEstado;
+                  });
+                  // La gestión comercial utiliza paginación profesional: 5 presupuestos por página.
+                  // El historial completo continúa disponible desde el perfil de cada cliente.
+                  const porPagina = 5;
+                  const totalPaginas = Math.max(1, Math.ceil(listaCompleta.length / porPagina));
+                  const paginaActual = Math.min(paginaPresupuestos, totalPaginas);
+                  const inicio = (paginaActual - 1) * porPagina;
+                  const lista = listaCompleta.slice(inicio, inicio + porPagina);
+                  const paginasVisibles = totalPaginas <= 7
+                    ? Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                    : Array.from(new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])).filter(n => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
+                  return lista.length === 0 ? (
+                    <div className="py-14 px-5 text-center">
+                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg></div>
+                      <p className="mt-3 text-[11px] font-semibold text-slate-700">No hay presupuestos que coincidan.</p>
+                      <p className="mt-1.5 text-[11px] text-slate-500">Probá con otro criterio o creá un nuevo presupuesto.</p>
+                    </div>
+                  ) : (
+                    <>
+                    <div className="overflow-x-auto rounded-lg border border-slate-100">
+                      <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
+                        <thead><tr className="bg-slate-50/70 border-b border-slate-100">
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
+                          <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
+                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
+                          <th className="px-3 py-2 w-[112px]"></th>
+                        </tr></thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
+                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
+                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
+                              <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
+                              <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
+                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
+                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
+                              <td className="px-3 py-2"><select value={p.estado || 'Emitido'} onChange={e => cambiarEstadoPresupuesto(p.presupuesto_id, e.target.value)} aria-label={`Estado de ${p.numero_presupuesto}`} className={`h-7 max-w-[112px] rounded-md border px-2 pr-6 text-[9px] font-semibold outline-none cursor-pointer appearance-none bg-no-repeat bg-[right_5px_center] bg-[length:10px_10px] ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Rechazado'?'bg-red-50 text-red-700 border-red-200':p.estado==='Vencido'?'bg-slate-100 text-slate-600 border-slate-200':'bg-blue-50 text-blue-700 border-blue-200'}`}>{['Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => <option key={estado} value={estado}>{estado}</option>)}</select></td>
+                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {totalPaginas > 1 && (
+                      <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
+                        <div className="flex items-center justify-center sm:justify-end gap-1">
+                          <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior">
+                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+                          </button>
+                          {paginasVisibles.map((numero, index) => {
+                            const anterior = paginasVisibles[index - 1];
+                            return (
+                              <Fragment key={numero}>
+                                {anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}
+                                <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button>
+                              </Fragment>
+                            );
+                          })}
+                          <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente">
+                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    </>
+                  );
+                })()}
+              </section>
+            </div>
+          )}
           {activeTab === 'clientes' && (
             <div className="max-w-6xl mx-auto space-y-3">
               <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,.04)] overflow-hidden">
@@ -3112,7 +3211,7 @@ useEffect(() => {
                             </section>
                           )}
                         </div>
-      </main>
+                      </main>
                     </div>
 
                     {/* FOOTER */}
