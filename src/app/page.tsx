@@ -212,7 +212,14 @@ const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', '
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'; className?: string }) {
+const estadosVisiblesPresupuesto = [
+  { key: 'Emitido', label: 'Emitido', icon: '●' },
+  { key: 'Enviado', label: 'Enviado', icon: '→' },
+  { key: 'Aceptado', label: 'Aceptado', icon: '✓' },
+  { key: 'Pagado', label: 'Pagado', icon: '✓' },
+] as const;
+
+function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'|'sparkles'|'check'|'arrow'; className?: string }) {
   const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
   switch (name) {
     case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
@@ -222,6 +229,12 @@ function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'q
     case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3.1"/><path d="M5 20.5a7 7 0 0 1 14 0"/><path d="M18.5 4.8v3.4M16.8 6.5h3.4"/></svg>;
     case 'plus': return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>;
     case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.4 4.4"/></svg>;
+    case 'sparkles':
+      return <svg {...common}><path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z"/><path d="m19 13 .7 2.3L22 16l-2.3.7L19 19l-.7-2.3L16 16l2.3-.7L19 13Z"/></svg>;
+    case 'check':
+      return <svg {...common}><path d="m5 12 4 4L19 6"/></svg>;
+    case 'arrow':
+      return <svg {...common}><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg>;
     case 'logout': return <svg {...common}><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"/></svg>;
     case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
     case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
@@ -535,6 +548,10 @@ function LandingPage({ onGoToLogin, onGoToRegister }: { onGoToLogin: () => void;
         </div>
       </header>
 
+      <style>{`
+        .mioficio-status-pill{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;border-radius:9999px;padding:.25rem .5rem;font-size:8px;line-height:1;font-weight:700;border:1px solid rgb(226 232 240);background:#fff;color:rgb(71 85 105)}
+        @media(max-width:640px){.mioficio-status-pill{font-size:7px;padding:.25rem .42rem}}
+      `}</style>
       <main className="relative z-10">
         <section className="max-w-7xl mx-auto px-5 sm:px-6 pt-20 sm:pt-28 pb-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.07] px-3.5 py-2 text-[10px] sm:text-[11px] font-bold text-blue-300">
@@ -2226,7 +2243,7 @@ useEffect(() => {
             <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
             <div className="hidden md:flex w-[210px] xl:w-[260px] h-8 rounded-lg bg-slate-50 border border-slate-200 items-center gap-2.5 px-3.5 ml-3"><IconoPanel name="search" className="w-4 h-4 text-slate-400 shrink-0" /><input className="w-full bg-transparent outline-none text-[11px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar en MiOficio..." /></div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={activarPremium}
@@ -2294,14 +2311,7 @@ useEffect(() => {
                         <h1 className="mt-1 text-[25px] font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[29px]">Buenos días, {nombreUsuario}</h1>
                         <p className="mt-1 text-[11px] text-slate-500 sm:text-[12px]">Todo lo importante de tu negocio, en una sola vista.</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setShowModalCliente(true)} className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[9px] font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-                          {icon('users')}<span>Nuevo cliente</span>
-                        </button>
-                        <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-9 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[9px] font-bold text-white shadow-sm transition hover:bg-blue-700">
-                          {icon('plus')}<span>Nuevo presupuesto</span>
-                        </button>
-                      </div>
+                      
                     </section>
 
                     {/* KPI — tres tarjetas, sin datos inventados */}
@@ -3378,26 +3388,31 @@ useEffect(() => {
 
       {showModalPremium && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3 sm:p-5"
           onClick={() => {
             if (!procesandoPago) setShowModalPremium(false);
           }}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
+            className="flex max-h-[calc(100dvh-24px)] w-full max-w-[430px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_70px_rgba(15,23,42,.28)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600">
-                  MiOficio Pro
-                </p>
-                <h2 className="mt-1 text-xl font-bold text-slate-900">
-                  Activar Premium
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Accedé a todas las herramientas Premium.
-                </p>
+            {/* Cabecera compacta */}
+            <div className="flex shrink-0 items-start justify-between border-b border-slate-100 px-4 py-3.5 sm:px-5">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
+                    <IconoPanel name="sparkles" className="h-3.5 w-3.5" />
+                  </span>
+                  <div>
+                    <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-600">
+                      MiOficio Premium
+                    </p>
+                    <h2 className="mt-0.5 text-[16px] font-extrabold tracking-[-0.02em] text-slate-950">
+                      Elegí tu plan
+                    </h2>
+                  </div>
+                </div>
               </div>
 
               <button
@@ -3405,96 +3420,101 @@ useEffect(() => {
                 onClick={() => {
                   if (!procesandoPago) setShowModalPremium(false);
                 }}
-                className="rounded-lg px-2 py-1 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-lg leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 aria-label="Cerrar"
               >
                 ×
               </button>
             </div>
 
-            <div className="mb-4 space-y-3">
-  <p className="text-xs font-semibold text-slate-700">
-    Elegí tu plan Premium
-  </p>
-
-  <div className="grid grid-cols-2 gap-2">
-    {[
-      { id: 'daily', label: 'Diario', price: '$ 399', duration: '1 día' },
-      { id: 'weekly', label: 'Semanal', price: '$ 2.799', duration: '7 días' },
-      { id: 'monthly', label: 'Mensual', price: '$ 11.999', duration: '30 días' },
-      { id: 'yearly', label: 'Anual', price: '$ 139.999', duration: '365 días' },
-    ].map((plan) => (
-      <button
-        key={plan.id}
-        type="button"
-        onClick={() =>
-          setPlanPremium(
-            plan.id as 'daily' | 'weekly' | 'monthly' | 'yearly'
-          )
-        }
-        className={`rounded-xl border p-3 text-left transition ${
-          planPremium === plan.id
-            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-            : 'border-slate-200 bg-white hover:border-blue-300'
-        }`}
-      >
-        <p className="text-xs font-semibold text-slate-800">
-          {plan.label}
-        </p>
-        <p className="mt-1 text-base font-bold text-slate-900">
-          {plan.price} ARS
-        </p>
-        <p className="mt-0.5 text-[10px] text-slate-500">
-          {plan.duration}
-        </p>
-      </button>
-    ))}
-  </div>
-
-  <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <p className="text-sm font-semibold text-slate-800">
-          MiOficio Premium
-        </p>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Pago seguro procesado por dLocal.
-        </p>
-      </div>
-
-      <span className="whitespace-nowrap text-lg font-bold text-slate-900">
-        {planPremium === 'daily'
-          ? '$ 399 ARS'
-          : planPremium === 'weekly'
-            ? '$ 2.799 ARS'
-            : planPremium === 'yearly'
-              ? '$ 139.999 ARS'
-              : '$ 11.999 ARS'}
-      </span>
-    </div>
-  </div>
-</div>
-            <div className="space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-blue-600">
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <rect x="3" y="5" width="18" height="14" rx="2" />
-                      <path d="M3 10h18" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-700">
-                      Checkout seguro
+            {/* Contenido */}
+            <div className="min-h-0 overflow-y-auto px-4 py-3.5 sm:px-5">
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'daily', label: 'Diario', price: '$ 399', duration: '1 día' },
+                  { id: 'weekly', label: 'Semanal', price: '$ 2.799', duration: '7 días' },
+                  { id: 'monthly', label: 'Mensual', price: '$ 11.999', duration: '30 días' },
+                  { id: 'yearly', label: 'Anual', price: '$ 139.999', duration: '365 días', featured: true },
+                ].map((plan) => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() =>
+                      setPlanPremium(
+                        plan.id as 'daily' | 'weekly' | 'monthly' | 'yearly'
+                      )
+                    }
+                    className={`relative min-h-[76px] rounded-xl border p-3 text-left transition ${
+                      planPremium === plan.id
+                        ? 'border-blue-600 bg-blue-50/70 ring-1 ring-blue-600'
+                        : 'border-slate-200 bg-white hover:border-blue-300'
+                    }`}
+                  >
+                    {plan.featured && (
+                      <span className="absolute -right-1.5 -top-2 rounded-full bg-blue-600 px-2 py-0.5 text-[6px] font-extrabold uppercase tracking-wide text-white shadow-sm">
+                        Más elegido
+                      </span>
+                    )}
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[9px] font-bold text-slate-700">{plan.label}</p>
+                      {planPremium === plan.id && (
+                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-white">
+                          <IconoPanel name="check" className="h-2.5 w-2.5" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-[15px] font-extrabold tracking-[-0.02em] text-slate-950">
+                      {plan.price} <span className="text-[8px] font-semibold text-slate-400">ARS</span>
                     </p>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-500">
-                      Al continuar, vas a ser dirigido al checkout seguro de dLocal para completar los datos del medio de pago.
+                    <p className="mt-0.5 text-[7px] text-slate-400">{plan.duration}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Resumen del plan seleccionado + checkout, en un único bloque */}
+              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                      Tu plan
+                    </p>
+                    <p className="mt-1 truncate text-[12px] font-extrabold text-slate-900">
+                      MiOficio Premium · {
+                        planPremium === 'daily'
+                          ? 'Diario'
+                          : planPremium === 'weekly'
+                            ? 'Semanal'
+                            : planPremium === 'yearly'
+                              ? 'Anual'
+                              : 'Mensual'
+                      }
+                    </p>
+                    <p className="mt-0.5 text-[7px] text-slate-400">
+                      Activación después de confirmar el pago
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-[15px] font-extrabold text-slate-950">
+                    {planPremium === 'daily'
+                      ? '$ 399'
+                      : planPremium === 'weekly'
+                        ? '$ 2.799'
+                        : planPremium === 'yearly'
+                          ? '$ 139.999'
+                          : '$ 11.999'}
+                    <span className="ml-0.5 text-[7px] font-semibold text-slate-400">ARS</span>
+                  </p>
+                </div>
+
+                <div className="my-3 h-px bg-slate-200" />
+
+                <div className="flex items-start gap-2.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm ring-1 ring-slate-200">
+                    <IconoPanel name="payments" className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[8px] font-bold text-slate-700">Checkout seguro</p>
+                    <p className="mt-0.5 text-[7px] leading-3.5 text-slate-400">
+                      El pago se completa en el checkout seguro de dLocal. MiOficio no almacena los datos de tu tarjeta.
                     </p>
                   </div>
                 </div>
@@ -3503,26 +3523,27 @@ useEffect(() => {
               {errorTarjeta && (
                 <div
                   role="alert"
-                  className="rounded-xl bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-700"
+                  className="mt-2.5 rounded-lg bg-red-50 px-3 py-2 text-[8px] leading-3.5 text-red-700"
                 >
                   {errorTarjeta}
                 </div>
               )}
+            </div>
 
-              <p className="text-[10px] leading-4 text-slate-400">
-                MiOficio no almacena los datos de tu tarjeta. dLocal procesa la información necesaria para realizar el pago.
-              </p>
-
+            {/* CTA fijo dentro del modal: siempre visible en móvil */}
+            <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3.5 sm:px-5">
               <button
                 type="button"
                 onClick={pagarPremiumConTarjeta}
                 disabled={procesandoPago}
-                className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-[10px] font-extrabold text-white shadow-[0_6px_18px_rgba(37,99,235,.2)] transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {procesandoPago
-                  ? 'Preparando checkout…'
-                  : 'Continuar al pago →'}
+                {procesandoPago ? 'Preparando checkout…' : 'Continuar al pago'}
+                {!procesandoPago && <IconoPanel name="arrow" className="h-3.5 w-3.5" />}
               </button>
+              <p className="mt-1.5 text-center text-[6.5px] text-slate-400">
+                Pago seguro procesado por dLocal
+              </p>
             </div>
           </div>
         </div>
