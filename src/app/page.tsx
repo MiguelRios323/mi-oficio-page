@@ -212,27 +212,59 @@ const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', '
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'|'calendar'|'chevron'|'check'|'chart'|'lightbulb'; className?: string }) {
-  const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
+function IconoPanel({
+  name,
+  className = 'h-4 w-4',
+}: {
+  name:
+    | 'home' | 'clients' | 'quotes' | 'settings' | 'profile' | 'plus'
+    | 'search' | 'logout' | 'identity' | 'payments' | 'series'
+    | 'calendar' | 'chevron' | 'check' | 'chart' | 'lightbulb'
+    | 'arrow' | 'menu' | 'bell' | 'sparkles' | 'wallet' | 'document'
+    | 'trend' | 'more' | 'filter';
+  className?: string;
+}) {
+  const common = {
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    className,
+    'aria-hidden': true,
+  };
+
   switch (name) {
-    case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
-    case 'clients': return <svg {...common}><circle cx="9" cy="8" r="3.2"/><path d="M3.2 20v-1.1a5.8 5.8 0 0 1 11.6 0V20"/><path d="M16 5.8a3.2 3.2 0 0 1 0 6.3M18 14.2a4.6 4.6 0 0 1 3 4.1V20"/></svg>;
-    case 'quotes': return <svg {...common}><path d="M6.5 3.5h8l3 3V20.5h-11z"/><path d="M14.5 3.5v4h4"/><path d="M9 12h5M9 15.5h5"/></svg>;
-    case 'settings': return <svg {...common}><path d="M12 3.5v2.2M12 18.3v2.2M4.5 12H2.8M21.2 12h-1.7M6.1 6.1 4.9 4.9M19.1 19.1l-1.2-1.2M17.9 6.1l1.2-1.2M4.9 19.1l1.2-1.2"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1.1"/></svg>;
-    case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3.1"/><path d="M5 20.5a7 7 0 0 1 14 0"/><path d="M18.5 4.8v3.4M16.8 6.5h3.4"/></svg>;
-    case 'plus': return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>;
-    case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.4 4.4"/></svg>;
-    case 'logout': return <svg {...common}><path d="M10 17l5-5-5-5M15 12H3"/><path d="M14 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4"/></svg>;
-    case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
-    case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
-    case 'series': return <svg {...common}><path d="M7 4v16M17 4v16M4 7h6M14 7h6M4 17h6M14 17h6"/></svg>;
-    case 'calendar': return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3.5v4M17 3.5v4M3.5 9h17"/></svg>;
-    case 'chevron': return <svg {...common}><path d="m7 9 5 5 5-5"/></svg>;
-    case 'check': return <svg {...common}><path d="m5 12 4 4L19 6"/></svg>;
-    case 'chart': return <svg {...common}><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>;
-    case 'lightbulb': return <svg {...common}><path d="M9 18h6M10 21h4"/><path d="M8.5 14.5a6 6 0 1 1 7 0c-.9.7-1.5 1.6-1.5 2.5h-5c0-.9-.6-1.8-1.5-2.5Z"/></svg>;
+    case 'home': return <svg {...common}><path d="m3.5 10.5 8.5-7 8.5 7"/><path d="M5.5 9.5v9.25A1.75 1.75 0 0 0 7.25 20.5h9.5a1.75 1.75 0 0 0 1.75-1.75V9.5"/><path d="M9.5 20.5v-5h5v5"/></svg>;
+    case 'clients': return <svg {...common}><circle cx="9" cy="8" r="3"/><path d="M3.5 19.5c.7-3.1 2.6-4.7 5.5-4.7s4.8 1.6 5.5 4.7"/><path d="M15.5 5.8a3 3 0 0 1 0 5.7"/><path d="M17 15.1c1.9.5 3.1 1.9 3.5 4.4"/></svg>;
+    case 'quotes':
+    case 'document': return <svg {...common}><path d="M7 3.75h7.25L19 8.5v11.75A1.75 1.75 0 0 1 17.25 22h-10A1.75 1.75 0 0 1 5.5 20.25v-14A2.5 2.5 0 0 1 8 3.75Z"/><path d="M14 3.75v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/></svg>;
+    case 'payments':
+    case 'wallet': return <svg {...common}><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><path d="M3.5 9.5h17"/><path d="M15 14h3.5"/><circle cx="15" cy="14" r=".75" fill="currentColor" stroke="none"/></svg>;
+    case 'series': return <svg {...common}><path d="M6 4.5h12M5 8.5h14M7 12.5h10M8.5 16.5h7M10 20.5h4"/></svg>;
+    case 'identity': return <svg {...common}><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M6.5 16c.6-1.6 1.4-2.3 2.5-2.3s1.9.7 2.5 2.3M14 9h3M14 12h3M14 15h2"/></svg>;
+    case 'profile': return <svg {...common}><circle cx="12" cy="8" r="3"/><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6"/></svg>;
+    case 'settings': return <svg {...common}><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15.2 1.1 1.9-2 2-1.9-1.1a7.7 7.7 0 0 1-2.1.9L14 21h-4l-.5-2.1a7.7 7.7 0 0 1-2.1-.9l-1.9 1.1-2-2 1.1-1.9a7.7 7.7 0 0 1-.9-2.1L1.6 12l2.1-.5a7.7 7.7 0 0 1 .9-2.1L3.5 7.5l2-2 1.9 1.1a7.7 7.7 0 0 1 2.1-.9L10 3.6h4l.5 2.1a7.7 7.7 0 0 1 2.1.9l1.9-1.1 2 2-1.1 1.9a7.7 7.7 0 0 1 .9 2.1l2.1.5-2.1.5a7.7 7.7 0 0 1-.9 2.1Z"/></svg>;
+    case 'search': return <svg {...common}><circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/></svg>;
+    case 'calendar': return <svg {...common}><rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg>;
+    case 'bell': return <svg {...common}><path d="M18 10a6 6 0 0 0-12 0c0 6-2.5 6.5-2.5 8h17C20.5 16.5 18 16 18 10Z"/><path d="M10 21h4"/></svg>;
+    case 'sparkles': return <svg {...common}><path d="m12 3 1.2 4.3L17.5 9l-4.3 1.2L12 14.5l-1.2-4.3L6.5 9l4.3-1.7L12 3Z"/><path d="m19 14 .6 2.2L22 17l-2.4.8L19 20l-.6-2.2L16 17l2.4-.8L19 14Z"/></svg>;
+    case 'check': return <svg {...common}><path strokeWidth="2.2" d="m5.2 12.3 4.2 4.2 9.4-9.2"/></svg>;
+    case 'chart':
+    case 'trend': return <svg {...common}><path d="M4 19.5V5M4 19.5h16"/><path d="m7 15 3-3.5 3 2 5-6"/></svg>;
+    case 'lightbulb': return <svg {...common}><path d="M8.2 14.5a6 6 0 1 1 7.6 0c-.9.7-1.3 1.5-1.3 2.5H9.5c0-1-.4-1.8-1.3-2.5Z"/><path d="M10 20h4M10.5 17h3"/></svg>;
+    case 'chevron': return <svg {...common}><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/></svg>;
+    case 'arrow': return <svg {...common}><path d="M4 12h15M14 7l5 5-5 5"/></svg>;
+    case 'plus': return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
+    case 'more': return <svg {...common}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>;
+    case 'filter': return <svg {...common}><path d="M4 6h16M7 12h10M10 18h4"/></svg>;
+    case 'menu': return <svg {...common}><path d="M4 7h16M4 12h16M4 17h16"/></svg>;
+    case 'logout': return <svg {...common}><path d="M10 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19H10"/><path d="m13 8 4 4-4 4M17 12H9"/></svg>;
+    default: return null;
   }
 }
+
 
 function IconoEstadoPresupuesto({ estado, className = 'w-3.5 h-3.5' }: { estado: string; className?: string }) {
   const common = { className, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -540,6 +572,10 @@ function LandingPage({ onGoToLogin, onGoToRegister }: { onGoToLogin: () => void;
         </div>
       </header>
 
+      <style>{`
+        .mioficio-dashboard-modern svg { vector-effect: non-scaling-stroke; }
+        .mioficio-dashboard-modern button { -webkit-tap-highlight-color: transparent; }
+      `}</style>
       <main className="relative z-10">
         <section className="max-w-7xl mx-auto px-5 sm:px-6 pt-20 sm:pt-28 pb-24 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/[0.07] px-3.5 py-2 text-[10px] sm:text-[11px] font-bold text-blue-300">
@@ -2260,7 +2296,7 @@ useEffect(() => {
         </header>
         <div className="px-3 py-3 sm:px-5 sm:py-4 lg:px-6 lg:py-5">
           {activeTab === 'dashboard' && (
-            <div className="mx-auto w-full max-w-[1240px] space-y-4">
+            <div className="mioficio-dashboard-modern mx-auto w-full max-w-[1240px] space-y-4">
               <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-blue-600">Resumen</p>
@@ -2297,7 +2333,7 @@ useEffect(() => {
                         {label:'Presupuestado',value:`$ ${totalPresupuestado.toLocaleString('es-AR')}`,helper:'Valor total emitido',trend:'8%',icon:'quotes' as const,iconBox:'bg-blue-50 text-blue-600'},
                         {label:'Clientes',value:String(clientes.length),helper:'Clientes registrados',trend:'3',icon:'clients' as const,iconBox:'bg-violet-50 text-violet-600'}
                       ].map(card => (
-                        <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                        <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-slate-400">{card.label}</p>
@@ -2312,7 +2348,7 @@ useEffect(() => {
                     </section>
 
                     <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1.45fr_.55fr]">
-                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
                         <div className="flex items-center justify-between gap-3">
                           <div><h3 className="text-[11px] font-extrabold text-slate-950">Flujo comercial</h3><p className="mt-0.5 text-[7px] text-slate-400">Seguimiento de tus presupuestos</p></div>
                           <button type="button" className="rounded-lg border border-slate-200 px-2 py-1 text-[7px] font-semibold text-slate-500">Este mes <span className="ml-1">⌄</span></button>
@@ -2335,7 +2371,7 @@ useEffect(() => {
                         </div>
                       </article>
 
-                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
                         <div className="flex items-center justify-between"><div><h3 className="text-[11px] font-extrabold text-slate-950">Resumen</h3><p className="mt-0.5 text-[7px] text-slate-400">Indicadores del período</p></div><IconoPanel name="chart" className="h-4 w-4 text-blue-500"/></div>
                         <div className="mt-4 space-y-3">
                           <div><div className="flex items-center justify-between"><span className="text-[7px] text-slate-500">Presupuestos aceptados</span><b className="text-[8px] text-slate-900">{aceptados}</b></div><div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{width:`${tasaAceptacion}%`}}/></div></div>
@@ -2346,13 +2382,13 @@ useEffect(() => {
                     </section>
 
                     <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
-                      <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                      <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
                         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h3 className="text-[11px] font-extrabold text-slate-950">Presupuestos recientes</h3><p className="mt-0.5 text-[7px] text-slate-400">Últimos documentos generados</p></div><button type="button" onClick={()=>setActiveTab('presupuestos')} className="text-[7px] font-bold text-blue-600">Ver todos →</button></div>
                         <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[600px] text-left"><thead className="bg-slate-50"><tr className="text-[6.5px] font-semibold uppercase tracking-[0.04em] text-slate-400"><th className="px-4 py-2">N.º</th><th className="px-4 py-2">Cliente</th><th className="px-4 py-2">Fecha</th><th className="px-4 py-2">Estado</th><th className="px-4 py-2 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-100">{ultimos.map(p=><tr key={p.presupuesto_id} className="text-[7px] text-slate-600 transition hover:bg-slate-50"><td className="px-4 py-2 font-bold text-slate-800">{p.numero_presupuesto}</td><td className="px-4 py-2 font-semibold text-slate-800">{p.cliente}</td><td className="px-4 py-2">{p.fecha}</td><td className="px-4 py-2"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span></td><td className="px-4 py-2 text-right font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</td></tr>)}</tbody></table></div>
                         <div className="divide-y divide-slate-100 sm:hidden">{ultimos.map(p=><button key={p.presupuesto_id} type="button" onClick={()=>setActiveTab('presupuestos')} className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition hover:bg-slate-50"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><IconoPanel name="quotes" className="h-3.5 w-3.5"/></span><span className="min-w-0 flex-1"><span className="block truncate text-[8px] font-bold text-slate-900">{p.cliente}</span><span className="mt-0.5 block truncate text-[6.5px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</span></span><span className="shrink-0 text-right"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span><span className="mt-0.5 block text-[8px] font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</span></span></button>)}</div>
                       </article>
 
-                      <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                      <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,.04),0_8px_24px_rgba(15,23,42,.025)]">
                         <h3 className="text-[11px] font-extrabold text-slate-950">Acciones rápidas</h3>
                         <p className="mt-0.5 text-[7px] text-slate-400">Atajos para trabajar más rápido.</p>
                         <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 text-[8px] font-bold text-white transition hover:bg-blue-700"><IconoPanel name="plus" className="h-3.5 w-3.5"/> Nuevo presupuesto</button>
