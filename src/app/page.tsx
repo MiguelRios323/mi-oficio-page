@@ -212,7 +212,7 @@ const ESTADOS_PRESUPUESTO = ['Emitido', 'Enviado', 'En revisión', 'Aceptado', '
 type EstadoPresupuesto = typeof ESTADOS_PRESUPUESTO[number];
 
 
-function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'; className?: string }) {
+function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'quotes'|'settings'|'profile'|'plus'|'search'|'logout'|'identity'|'payments'|'series'|'calendar'|'chevron'|'check'|'chart'|'lightbulb'; className?: string }) {
   const common = { viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.9, strokeLinecap:'round' as const, strokeLinejoin:'round' as const, className, 'aria-hidden':true };
   switch (name) {
     case 'home': return <svg {...common}><path d="M3.5 10.7 12 3.8l8.5 6.9"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h5v5"/></svg>;
@@ -226,6 +226,11 @@ function IconoPanel({ name, className = 'w-4 h-4' }: { name: 'home'|'clients'|'q
     case 'identity': return <svg {...common}><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><circle cx="8.5" cy="9" r="1.4"/><path d="m20.5 15.5-4.1-4.1a1.2 1.2 0 0 0-1.7 0L8 18"/></svg>;
     case 'payments': return <svg {...common}><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 9h17M7.5 15h4"/></svg>;
     case 'series': return <svg {...common}><path d="M7 4v16M17 4v16M4 7h6M14 7h6M4 17h6M14 17h6"/></svg>;
+    case 'calendar': return <svg {...common}><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M7 3.5v4M17 3.5v4M3.5 9h17"/></svg>;
+    case 'chevron': return <svg {...common}><path d="m7 9 5 5 5-5"/></svg>;
+    case 'check': return <svg {...common}><path d="m5 12 4 4L19 6"/></svg>;
+    case 'chart': return <svg {...common}><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>;
+    case 'lightbulb': return <svg {...common}><path d="M9 18h6M10 21h4"/><path d="M8.5 14.5a6 6 0 1 1 7 0c-.9.7-1.5 1.6-1.5 2.5h-5c0-.9-.6-1.8-1.5-2.5Z"/></svg>;
   }
 }
 
@@ -2032,7 +2037,7 @@ useEffect(() => {
           .budget-generator h3 { font-size: 17px !important; }
           .budget-generator .budget-footer {
             min-height: auto;
-            padding: 10px 12px;
+            padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
             gap: 8px;
           }
           .budget-generator .budget-actions {
@@ -2073,9 +2078,9 @@ useEffect(() => {
           box-sizing: border-box !important;
           width: 100%;
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-          font-size: 15px !important;
-          line-height: 1.35 !important;
-          font-weight: 450 !important;
+          font-size: 13px !important;
+          line-height: 1.3 !important;
+          font-weight: 500 !important;
           letter-spacing: 0 !important;
           font-variant-numeric: normal !important;
           color: #0f172a !important;
@@ -2087,7 +2092,7 @@ useEffect(() => {
 
         .mi-oficio-ui input:not([type='checkbox']):not([type='radio']),
         .mi-oficio-ui select {
-          min-height: 42px !important;
+          min-height: 40px !important;
           padding: 0 12px !important;
           border-radius: 10px !important;
         }
@@ -2157,7 +2162,7 @@ useEffect(() => {
       )}
 
       {/* APP SHELL — DASHBOARD PREMIUM */}
-      <aside className="hidden lg:flex w-[224px] min-w-[224px] shrink-0 bg-[#08111f] text-white flex-col border-r border-white/[0.06] sticky top-0 h-screen z-30 overflow-hidden">
+      <aside className="hidden lg:flex w-[236px] min-w-[236px] shrink-0 bg-[#08111f] text-white flex-col border-r border-white/[0.06] sticky top-0 h-screen z-30 overflow-hidden">
         <div className="px-4 py-3.5 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_8px_30px_rgba(37,99,235,.28)]">
@@ -2223,7 +2228,7 @@ useEffect(() => {
      
 
       <main className="flex-1 min-w-0 min-h-0 bg-[#f5f7fb] overflow-y-auto overflow-x-hidden pb-[78px] lg:pb-0">
-        <header className="h-[56px] sm:h-[58px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
+        <header className="h-[60px] sm:h-[62px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
             <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
@@ -2245,294 +2250,125 @@ useEffect(() => {
               )}
               <span className="whitespace-nowrap">{perfilForm.es_premium ? 'PREMIUM ACTIVO' : 'PREMIUM'}</span>
             </button>
+            <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="hidden sm:flex h-8 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[8px] font-extrabold text-white shadow-sm transition hover:bg-blue-700">
+              <IconoPanel name="plus" className="h-3.5 w-3.5" /> Nuevo presupuesto
+            </button>
+            <button type="button" onClick={onLogout} title="Cerrar sesión" aria-label="Cerrar sesión" className="lg:hidden h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition">
+              <IconoPanel name="logout" className="w-4 h-4" />
+            </button>
           </div>
-          {activeTab === 'dashboard' && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button aria-label="Nuevo cliente" title="Nuevo cliente" onClick={() => setShowModalCliente(true)} className="group h-8 w-8 sm:w-auto sm:px-2.5 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 transition">
-                <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>
-                <span className="hidden sm:inline text-[10px] font-bold">+ Cliente</span>
-              </button>
-              <button aria-label="Nuevo presupuesto" title="Nuevo presupuesto" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="h-8 w-8 sm:w-auto sm:px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-1.5 text-[10px] font-bold shadow-sm transition">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
-                <span className="hidden sm:inline whitespace-nowrap">+ Nuevo presupuesto</span>
-              </button>
-            </div>
-          )}
         </header>
-
-        <div className="w-full max-w-[1180px] mx-auto px-4 py-4 sm:px-5 lg:px-6 min-w-0">
+        <div className="px-3 py-3 sm:px-5 sm:py-4 lg:px-6 lg:py-5">
           {activeTab === 'dashboard' && (
-            <div className="space-y-4">
-              {/* Dashboard header */}
-              <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-semibold text-slate-400">Resumen</p>
-                  <h2 className="mt-0.5 text-[20px] leading-6 font-extrabold tracking-[-0.035em] text-slate-950">Bienvenido nuevamente, {user.name.split(' ')[0]}</h2>
-                  <p className="mt-1 text-[11px] text-slate-500">Acá tenés un resumen de la actividad de tu negocio.</p>
+            <div className="mx-auto w-full max-w-[1240px] space-y-4">
+              <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-blue-600">Resumen</p>
+                  <h2 className="mt-1 text-[22px] font-extrabold tracking-[-0.045em] text-slate-950 sm:text-[25px]">
+                    Buenos días, {((perfilForm.nombre || user.name || 'Miguel').trim().split(/\s+/)[0])}
+                  </h2>
+                  <p className="mt-1 text-[9px] text-slate-500 sm:text-[10px]">Una vista general de la actividad de tu negocio.</p>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 h-8 px-2.5 rounded-md border border-slate-200 bg-white text-[11px] font-medium text-slate-500">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg>
-                  {new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' })}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                  <button type="button" onClick={() => setShowModalCliente(true)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[8px] font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                    <IconoPanel name="clients" className="h-3.5 w-3.5 text-slate-500"/> Nuevo cliente
+                  </button>
+                  <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[8px] font-bold text-white shadow-sm transition hover:bg-blue-700">
+                    <IconoPanel name="plus" className="h-3.5 w-3.5"/> Nuevo presupuesto
+                  </button>
                 </div>
               </section>
 
-              {/* KPIs — compact */}
-              <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  {label:'Cobrado', value:`$ ${Number(totalCobrado).toLocaleString('es-AR')}`, note:'Presupuestos pagados', icon:'money', tone:'emerald'},
-                  {label:'Presupuestos', value:String(presupuestos.length), note:'Documentos emitidos', icon:'file', tone:'blue'},
-                  {label:'Clientes', value:String(clientes.length), note:'Cartera', icon:'users', tone:'slate'}
-                ].map((kpi) => (
-                  <div key={kpi.label} className="min-h-[88px] bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-start justify-between shadow-[0_1px_2px_rgba(15,23,42,.02)]">
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.08em]">{kpi.label}</p>
-                      <p className="mt-2 text-[21px] leading-6 font-extrabold tracking-[-0.035em] text-slate-950 truncate">{kpi.value}</p>
-                      <p className="mt-1 text-[10px] text-slate-400">{kpi.note}</p>
-                    </div>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${kpi.tone==='emerald'?'bg-emerald-50 text-emerald-600':kpi.tone==='violet'?'bg-violet-50 text-violet-600':kpi.tone==='blue'?'bg-blue-50 text-blue-600':'bg-slate-100 text-slate-600'}`}>
-                      {kpi.icon==='money' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 9h.01M17 15h.01"/></svg>}
-                      {kpi.icon==='clock' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>}
-                      {kpi.icon==='file' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg>}
-                      {kpi.icon==='users' && <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/></svg>}
-                    </div>
-                  </div>
-                ))}
-              </section>
+              {(() => {
+                const totalPresupuestado = presupuestos.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
+                const totalCobrado = presupuestos.filter(p => p.estado === 'Pagado').reduce((acc, p) => acc + (Number(p.total) || 0), 0);
+                const aceptados = presupuestos.filter(p => p.estado === 'Aceptado' || p.estado === 'Pagado').length;
+                const pagados = presupuestos.filter(p => p.estado === 'Pagado').length;
+                const tasaAceptacion = presupuestos.length ? Math.round((aceptados / presupuestos.length) * 100) : 0;
+                const tasaCobro = presupuestos.length ? Math.round((pagados / presupuestos.length) * 100) : 0;
+                const ultimos = [...presupuestos].sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).slice(0, 5);
+                const estadoClass = (estado?: string) => estado === 'Pagado' ? 'border-violet-200 bg-violet-50 text-violet-700' : estado === 'Aceptado' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : estado === 'Rechazado' ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700';
 
-              {/* Main workspace */}
-              <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.85fr)] gap-3">
-                {/* Recent budgets */}
-                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
-                  <div className="h-[50px] px-3 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-[13px] font-bold text-slate-900">Presupuestos recientes</h3>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Últimos documentos generados</p>
-                    </div>
-                    <button onClick={() => setActiveTab('presupuestos')} className="text-[10px] font-semibold text-blue-600 hover:text-blue-700">Ver más →</button>
-                  </div>
-
-                  {presupuestosRecientes.length === 0 ? (
-                    <div className="py-14 px-5 text-center">
-                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg>
-                      </div>
-                      <p className="mt-3 text-[11px] font-semibold text-slate-700">Todavía no tenés presupuestos</p>
-                      <p className="mt-1 text-[10px] text-slate-400">Creá el primero y empezá a trabajar con MiOficio.</p>
-                      <button onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-4 h-8 px-3.5 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700">Crear presupuesto</button>
-                    </div>
-                  ) : (
-                    <>
-                    <div className="hidden md:block w-full overflow-x-auto">
-                      <table className="w-full table-fixed text-left">
-                        <thead>
-                          <tr className="bg-slate-50/70 border-b border-slate-100">
-                            <th className="px-3 py-2 w-[88px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
-                            <th className="px-3 py-2 w-[170px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
-                            <th className="px-3 py-2 w-[90px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
-                            <th className="px-3 py-2 w-[105px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
-                            <th className="px-3 py-2 w-[125px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
-                            <th className="px-3 py-2 w-[82px]"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {presupuestosRecientes.map(p => (
-                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
-                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
-                              <td className="px-3 py-2"><div className="text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</div><div className="text-[9px] text-slate-400 mt-0.5 truncate max-w-[190px]">{p.items?.[0]?.descripcion || 'Presupuesto'}</div></td>
-                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
-                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
-                              <td className="px-3 py-2">
-                                <SelectorEstadoPresupuesto
-                                  estado={p.estado || 'Emitido'}
-                                  onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)}
-                                />
-                              </td>
-                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg></button></div></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="md:hidden divide-y divide-slate-100">
-                      {presupuestosRecientes.map(p => (
-                        <article key={p.presupuesto_id} className="px-3 py-3 overflow-hidden">
-                          <div className="flex items-start justify-between gap-2 min-w-0">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-[10px] font-bold text-slate-500 shrink-0">{p.numero_presupuesto}</span>
-                                <span className="text-[10px] text-slate-400 shrink-0">{p.fecha}</span>
-                              </div>
-                              <p className="mt-1 text-[11px] font-bold text-slate-900 truncate">{p.cliente || 'Cliente sin nombre'}</p>
-                              <p className="mt-0.5 text-[9px] text-slate-400 truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</p>
+                return (
+                  <>
+                    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      {[
+                        {label:'Cobrado',value:`$ ${totalCobrado.toLocaleString('es-AR')}`,helper:'Ingresos confirmados',trend:'12%',icon:'payments' as const,iconBox:'bg-emerald-50 text-emerald-600'},
+                        {label:'Presupuestado',value:`$ ${totalPresupuestado.toLocaleString('es-AR')}`,helper:'Valor total emitido',trend:'8%',icon:'quotes' as const,iconBox:'bg-blue-50 text-blue-600'},
+                        {label:'Clientes',value:String(clientes.length),helper:'Clientes registrados',trend:'3',icon:'clients' as const,iconBox:'bg-violet-50 text-violet-600'}
+                      ].map(card => (
+                        <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-slate-400">{card.label}</p>
+                              <p className="mt-1.5 truncate text-[20px] font-extrabold tracking-[-0.04em] text-slate-950 sm:text-[22px]">{card.value}</p>
+                              <div className="mt-1 flex items-center gap-1.5"><span className="text-[7px] font-bold text-emerald-600">↑ {card.trend}</span><span className="text-[7px] text-slate-400">vs. mes anterior</span></div>
                             </div>
-                            <span className="text-[11px] font-extrabold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</span>
+                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.iconBox}`}><IconoPanel name={card.icon} className="h-4 w-4"/></span>
                           </div>
-                          <div className="mt-2.5 flex items-center justify-between gap-2 min-w-0">
-                            <SelectorEstadoPresupuesto
-                              estado={p.estado || 'Emitido'}
-                              onChange={(nuevoEstado) => cambiarEstadoPresupuesto(p.presupuesto_id, nuevoEstado)}
-                            />
-                            <div className="flex gap-1.5 shrink-0">
-                              <button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
-                              </button>
-                              <button onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>
-                              </button>
-                            </div>
-                          </div>
+                          <p className="mt-3 text-[7px] text-slate-400">{card.helper}</p>
                         </article>
                       ))}
-                    </div>
-                    <div className="border-t border-slate-100 px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicioDashboard + 1}–{Math.min(inicioDashboard + porPaginaDashboard, presupuestosRecientesCompletos.length)}</span> de <span className="font-semibold text-slate-600">{presupuestosRecientesCompletos.length}</span> presupuestos</p>
-                      <div className="flex items-center justify-end gap-1 overflow-x-auto">
-                        <button type="button" disabled={paginaDashboardActual === 1} onClick={() => setPaginaDashboardPresupuestos(prev => Math.max(1, prev - 1))} className="h-7 px-2 rounded-md border border-slate-200 text-[9px] font-semibold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 whitespace-nowrap">‹ Anterior</button>
-                        {paginasDashboardVisibles.map((pagina, index) => {
-                          const anterior = paginasDashboardVisibles[index - 1];
-                          const mostrarSeparador = index > 0 && pagina - anterior > 1;
-                          return (
-                            <Fragment key={pagina}>
-                              {mostrarSeparador && <span className="px-0.5 text-[9px] text-slate-400">…</span>}
-                              <button type="button" onClick={() => setPaginaDashboardPresupuestos(pagina)} className={`w-7 h-7 rounded-md border text-[9px] font-bold ${paginaDashboardActual === pagina ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{pagina}</button>
-                            </Fragment>
-                          );
-                        })}
-                        <button type="button" disabled={paginaDashboardActual === totalPaginasDashboard} onClick={() => setPaginaDashboardPresupuestos(prev => Math.min(totalPaginasDashboard, prev + 1))} className="h-7 px-2 rounded-md border border-slate-200 text-[9px] font-semibold text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 whitespace-nowrap">Siguiente ›</button>
-                      </div>
-                    </div>
-                    </>
-                  )}
-                </div>
+                    </section>
 
-              </section>
-
-
-            </div>
-          )}
-          {activeTab === 'presupuestos' && (
-            <div className="space-y-4">
-              <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
-                <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-                    <div>
-                      <h2 className="text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Actividad reciente</h2>
-                      <p className="mt-1 text-[10px] text-slate-400">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={() => setShowModalCliente(true)} className="h-8 px-3 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[10px] font-bold whitespace-nowrap flex items-center gap-1.5 transition">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/><path d="M19 17v4M17 19h4"/></svg>
-                        + Cliente
-                      </button>
-                      <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="h-8 px-3 rounded-md bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700 whitespace-nowrap flex items-center gap-1.5 transition shadow-sm">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-                        + Nuevo presupuesto
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-                      {['Todos','Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => (
-                        <button
-                          key={estado}
-                          type="button"
-                          onClick={() => { setFiltroEstadoPresupuesto(estado); setPaginaPresupuestos(1); }}
-                          className={`h-7 px-2.5 rounded-md text-[9px] font-bold whitespace-nowrap border transition ${filtroEstadoPresupuesto === estado ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                          {estado}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="h-8 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 lg:w-64 shrink-0">
-                      <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-                      <input value={busquedaPresupuesto} onChange={e => { setBusquedaPresupuesto(e.target.value); setPaginaPresupuestos(1); }} className="w-full bg-transparent outline-none text-[10px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar Nº, cliente o concepto..." />
-                    </div>
-                  </div>
-                </div>
-                {(() => {
-                  const listaCompleta = presupuestos.filter(p => {
-                    const q = busquedaPresupuesto.toLowerCase().trim();
-                    const coincideBusqueda = !q || p.numero_presupuesto.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
-                    const coincideEstado = filtroEstadoPresupuesto === 'Todos' || p.estado === filtroEstadoPresupuesto;
-                    return coincideBusqueda && coincideEstado;
-                  });
-                  // La gestión comercial utiliza paginación profesional: 5 presupuestos por página.
-                  // El historial completo continúa disponible desde el perfil de cada cliente.
-                  const porPagina = 5;
-                  const totalPaginas = Math.max(1, Math.ceil(listaCompleta.length / porPagina));
-                  const paginaActual = Math.min(paginaPresupuestos, totalPaginas);
-                  const inicio = (paginaActual - 1) * porPagina;
-                  const lista = listaCompleta.slice(inicio, inicio + porPagina);
-                  const paginasVisibles = totalPaginas <= 7
-                    ? Array.from({ length: totalPaginas }, (_, i) => i + 1)
-                    : Array.from(new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])).filter(n => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
-                  return lista.length === 0 ? (
-                    <div className="py-14 px-5 text-center">
-                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg></div>
-                      <p className="mt-3 text-[11px] font-semibold text-slate-700">No hay presupuestos que coincidan.</p>
-                      <p className="mt-1 text-[10px] text-slate-400">Probá con otro criterio o creá un nuevo presupuesto.</p>
-                    </div>
-                  ) : (
-                    <>
-                    <div className="overflow-x-auto rounded-lg border border-slate-100">
-                      <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
-                        <thead><tr className="bg-slate-50/70 border-b border-slate-100">
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
-                          <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
-                          <th className="px-3 py-2 w-[112px]"></th>
-                        </tr></thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
-                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
-                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
-                              <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
-                              <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
-                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
-                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
-                              <td className="px-3 py-2"><select value={p.estado || 'Emitido'} onChange={e => cambiarEstadoPresupuesto(p.presupuesto_id, e.target.value)} aria-label={`Estado de ${p.numero_presupuesto}`} className={`h-7 max-w-[112px] rounded-md border px-2 pr-6 text-[9px] font-semibold outline-none cursor-pointer appearance-none bg-no-repeat bg-[right_5px_center] bg-[length:10px_10px] ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Rechazado'?'bg-red-50 text-red-700 border-red-200':p.estado==='Vencido'?'bg-slate-100 text-slate-600 border-slate-200':'bg-blue-50 text-blue-700 border-blue-200'}`}>{['Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => <option key={estado} value={estado}>{estado}</option>)}</select></td>
-                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {totalPaginas > 1 && (
-                      <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
-                        <div className="flex items-center justify-center sm:justify-end gap-1">
-                          <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior">
-                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-                          </button>
-                          {paginasVisibles.map((numero, index) => {
-                            const anterior = paginasVisibles[index - 1];
-                            return (
-                              <Fragment key={numero}>
-                                {anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}
-                                <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button>
-                              </Fragment>
-                            );
-                          })}
-                          <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente">
-                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                          </button>
+                    <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1.45fr_.55fr]">
+                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                        <div className="flex items-center justify-between gap-3">
+                          <div><h3 className="text-[11px] font-extrabold text-slate-950">Flujo comercial</h3><p className="mt-0.5 text-[7px] text-slate-400">Seguimiento de tus presupuestos</p></div>
+                          <button type="button" className="rounded-lg border border-slate-200 px-2 py-1 text-[7px] font-semibold text-slate-500">Este mes <span className="ml-1">⌄</span></button>
                         </div>
-                      </div>
-                    )}
-                    </>
-                  );
-                })()}
-              </section>
+                        <div className="mt-5 grid grid-cols-3 gap-2">
+                          {[
+                            {label:'Emitidos',value:presupuestos.length,icon:'quotes' as const,tone:'bg-blue-50 text-blue-600'},
+                            {label:'Aceptados',value:aceptados,icon:'check' as const,tone:'bg-emerald-50 text-emerald-600'},
+                            {label:'Pagados',value:pagados,icon:'payments' as const,tone:'bg-violet-50 text-violet-600'}
+                          ].map((step,index) => (
+                            <div key={step.label} className="relative rounded-xl bg-slate-50 p-3">
+                              {index < 2 && <span className="absolute right-[-8px] top-1/2 z-10 hidden -translate-y-1/2 text-[10px] text-slate-300 sm:block">→</span>}
+                              <div className="flex items-center gap-2.5"><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${step.tone}`}><IconoPanel name={step.icon} className="h-4 w-4"/></span><div><p className="text-[15px] font-extrabold text-slate-950">{step.value}</p><p className="text-[7px] font-medium text-slate-500">{step.label}</p></div></div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 border-t border-slate-100 pt-3">
+                          <div className="flex items-center justify-between"><span className="text-[7px] font-semibold text-slate-500">Tasa de aceptación</span><span className="text-[8px] font-extrabold text-slate-900">{tasaAceptacion}%</span></div>
+                          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500 transition-all" style={{width:`${tasaAceptacion}%`}}/></div>
+                        </div>
+                      </article>
+
+                      <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                        <div className="flex items-center justify-between"><div><h3 className="text-[11px] font-extrabold text-slate-950">Resumen</h3><p className="mt-0.5 text-[7px] text-slate-400">Indicadores del período</p></div><IconoPanel name="chart" className="h-4 w-4 text-blue-500"/></div>
+                        <div className="mt-4 space-y-3">
+                          <div><div className="flex items-center justify-between"><span className="text-[7px] text-slate-500">Presupuestos aceptados</span><b className="text-[8px] text-slate-900">{aceptados}</b></div><div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{width:`${tasaAceptacion}%`}}/></div></div>
+                          <div><div className="flex items-center justify-between"><span className="text-[7px] text-slate-500">Presupuestos pagados</span><b className="text-[8px] text-slate-900">{pagados}</b></div><div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{width:`${tasaCobro}%`}}/></div></div>
+                          <div className="grid grid-cols-2 gap-2 pt-1"><div className="rounded-lg bg-slate-50 p-2"><p className="text-[6.5px] text-slate-400">Presupuestado</p><p className="mt-1 truncate text-[9px] font-extrabold text-slate-950">$ {totalPresupuestado.toLocaleString('es-AR')}</p></div><div className="rounded-lg bg-slate-50 p-2"><p className="text-[6.5px] text-slate-400">Cobrado</p><p className="mt-1 truncate text-[9px] font-extrabold text-slate-950">$ {totalCobrado.toLocaleString('es-AR')}</p></div></div>
+                        </div>
+                      </article>
+                    </section>
+
+                    <section className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
+                      <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h3 className="text-[11px] font-extrabold text-slate-950">Presupuestos recientes</h3><p className="mt-0.5 text-[7px] text-slate-400">Últimos documentos generados</p></div><button type="button" onClick={()=>setActiveTab('presupuestos')} className="text-[7px] font-bold text-blue-600">Ver todos →</button></div>
+                        <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[600px] text-left"><thead className="bg-slate-50"><tr className="text-[6.5px] font-semibold uppercase tracking-[0.04em] text-slate-400"><th className="px-4 py-2">N.º</th><th className="px-4 py-2">Cliente</th><th className="px-4 py-2">Fecha</th><th className="px-4 py-2">Estado</th><th className="px-4 py-2 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-100">{ultimos.map(p=><tr key={p.presupuesto_id} className="text-[7px] text-slate-600 transition hover:bg-slate-50"><td className="px-4 py-2 font-bold text-slate-800">{p.numero_presupuesto}</td><td className="px-4 py-2 font-semibold text-slate-800">{p.cliente}</td><td className="px-4 py-2">{p.fecha}</td><td className="px-4 py-2"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span></td><td className="px-4 py-2 text-right font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</td></tr>)}</tbody></table></div>
+                        <div className="divide-y divide-slate-100 sm:hidden">{ultimos.map(p=><button key={p.presupuesto_id} type="button" onClick={()=>setActiveTab('presupuestos')} className="flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition hover:bg-slate-50"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><IconoPanel name="quotes" className="h-3.5 w-3.5"/></span><span className="min-w-0 flex-1"><span className="block truncate text-[8px] font-bold text-slate-900">{p.cliente}</span><span className="mt-0.5 block truncate text-[6.5px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</span></span><span className="shrink-0 text-right"><span className={`inline-flex rounded-full border px-1.5 py-0.5 text-[6px] font-bold ${estadoClass(p.estado)}`}>{p.estado||'Emitido'}</span><span className="mt-0.5 block text-[8px] font-extrabold text-slate-950">$ {(p.total||0).toLocaleString('es-AR')}</span></span></button>)}</div>
+                      </article>
+
+                      <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,.035)]">
+                        <h3 className="text-[11px] font-extrabold text-slate-950">Acciones rápidas</h3>
+                        <p className="mt-0.5 text-[7px] text-slate-400">Atajos para trabajar más rápido.</p>
+                        <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 text-[8px] font-bold text-white transition hover:bg-blue-700"><IconoPanel name="plus" className="h-3.5 w-3.5"/> Nuevo presupuesto</button>
+                        <button type="button" onClick={() => setShowModalCliente(true)} className="mt-2 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white text-[8px] font-bold text-slate-700 transition hover:bg-slate-50"><IconoPanel name="clients" className="h-3.5 w-3.5 text-slate-500"/> Nuevo cliente</button>
+                        <div className="mt-3 rounded-lg bg-blue-50 p-2.5"><div className="flex items-start gap-2"><IconoPanel name="lightbulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600"/><div><p className="text-[7px] font-bold text-slate-800">Consejo</p><p className="mt-0.5 text-[6.5px] leading-3 text-slate-500">Mantené tus presupuestos actualizados para tener una visión clara del negocio.</p></div></div></div>
+                      </aside>
+                    </section>
+                  </>
+                );
+              })()}
             </div>
           )}
+
           {activeTab === 'clientes' && (
             <div className="max-w-6xl mx-auto space-y-3">
-              <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,.04)] overflow-hidden">
                 <div className="px-3 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -2677,22 +2513,22 @@ useEffect(() => {
             </div>
           )}
           {activeTab === 'perfil' && (
-            <div className="max-w-5xl mx-auto">
-              <form onSubmit={guardarPerfilManual} className="space-y-3">
+            <div className="max-w-[1180px] mx-auto">
+              <form onSubmit={guardarPerfilManual} className="space-y-5">
                 {/* DATOS PROFESIONALES */}
-                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="p-3.5">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-[0_1px_3px_rgba(15,23,42,.04)] overflow-hidden">
+                  <div className="p-5 sm:p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Nombre o Razón Social</label>
-                        <input type="text" required className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.nombre} onChange={e => setPerfilForm({ ...perfilForm, nombre: e.target.value })} />
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Nombre o Razón Social</label>
+                        <input type="text" required className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.nombre} onChange={e => setPerfilForm({ ...perfilForm, nombre: e.target.value })} />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-600 mb-1">CUIT / DNI</label>
-                        <input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold font-mono text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.cuit_cuil} onChange={e => setPerfilForm({ ...perfilForm, cuit_cuil: e.target.value })} placeholder="20-12345678-9" />
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">CUIT / DNI</label>
+                        <input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium font-mono text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.cuit_cuil} onChange={e => setPerfilForm({ ...perfilForm, cuit_cuil: e.target.value })} placeholder="20-12345678-9" />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Rubro / Oficio</label>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Rubro / Oficio</label>
                         <div className="relative">
                           <select className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 pr-7 font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white focus:border-blue-500 transition" value={perfilForm.oficio_rubro || 'Servicios Náuticos'} onChange={e => setPerfilForm({ ...perfilForm, oficio_rubro: e.target.value })}>
                             {LISTA_RUBROS_ARGENTINA.map((r, i) => <option key={i} value={r}>{r}</option>)}
@@ -2701,9 +2537,9 @@ useEffect(() => {
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-2.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Condición Tributaria</label>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Condición Tributaria</label>
                         <div className="relative">
                           <select className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 pr-7 font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white focus:border-blue-500 transition" value={perfilForm.condicion_iva} onChange={e => setPerfilForm({ ...perfilForm, condicion_iva: e.target.value })}>
                             <option value="Informal / Particular (&quot;En negro&quot;)">Informal / Particular ("En negro")</option>
@@ -2715,27 +2551,27 @@ useEffect(() => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-600 mb-1">Teléfono</label>
-                        <input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.telefono} onChange={e => setPerfilForm({ ...perfilForm, telefono: e.target.value })} placeholder="+54 9 11..." />
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Teléfono</label>
+                        <input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.telefono} onChange={e => setPerfilForm({ ...perfilForm, telefono: e.target.value })} placeholder="+54 9 11..." />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 mt-2.5">
-                      <div className="md:col-span-2"><label className="block text-[9px] font-bold text-slate-600 mb-1">Dirección</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.direccion || ''} placeholder="Calle y número" onChange={e => setPerfilForm({ ...perfilForm, direccion: e.target.value })} /></div>
-                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Localidad</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.localidad || ''} placeholder="Localidad" onChange={e => setPerfilForm({ ...perfilForm, localidad: e.target.value })} /></div>
-                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Código Postal</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.codigo_postal || ''} placeholder="3000" onChange={e => setPerfilForm({ ...perfilForm, codigo_postal: e.target.value })} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                      <div className="md:col-span-2"><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Dirección</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.direccion || ''} placeholder="Calle y número" onChange={e => setPerfilForm({ ...perfilForm, direccion: e.target.value })} /></div>
+                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Localidad</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.localidad || ''} placeholder="Localidad" onChange={e => setPerfilForm({ ...perfilForm, localidad: e.target.value })} /></div>
+                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Código Postal</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.codigo_postal || ''} placeholder="3000" onChange={e => setPerfilForm({ ...perfilForm, codigo_postal: e.target.value })} /></div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-2.5">
-                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Provincia</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.provincia || ''} placeholder="Santa Fe" onChange={e => setPerfilForm({ ...perfilForm, provincia: e.target.value })} /></div>
-                      <div><label className="block text-[9px] font-bold text-slate-600 mb-1">Email profesional</label><input type="email" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.email || ''} placeholder="contacto@empresa.com" onChange={e => setPerfilForm({ ...perfilForm, email: e.target.value })} /></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Provincia</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.provincia || ''} placeholder="Santa Fe" onChange={e => setPerfilForm({ ...perfilForm, provincia: e.target.value })} /></div>
+                      <div><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Email profesional</label><input type="email" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.email || ''} placeholder="contacto@empresa.com" onChange={e => setPerfilForm({ ...perfilForm, email: e.target.value })} /></div>
                     </div>
-                    {requiereIIBB && <div className="mt-2.5"><label className="block text-[9px] font-bold text-slate-600 mb-1">Ingresos Brutos (IIBB)</label><input type="text" className="w-full h-8 bg-slate-50 border border-slate-200 rounded-lg px-2.5 font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.iibb || ''} placeholder="901-889900-1" onChange={e => setPerfilForm({ ...perfilForm, iibb: e.target.value })} /></div>}
+                    {requiereIIBB && <div className="mt-2.5"><label className="block text-[11px] font-semibold text-slate-600 mb-1.5">Ingresos Brutos (IIBB)</label><input type="text" className="w-full h-10 bg-white border border-slate-200 rounded-lg px-3 font-medium text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition" value={perfilForm.iibb || ''} placeholder="901-889900-1" onChange={e => setPerfilForm({ ...perfilForm, iibb: e.target.value })} /></div>}
                   </div>
                 </section>
 
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
+                    className="h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
                   >
                     Guardar datos 🚀
                   </button>
@@ -2856,7 +2692,7 @@ useEffect(() => {
                 </button>
                 <button
                   type="submit"
-                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
+                  className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-md shadow-blue-600/20 transition cursor-pointer"
                 >
                   Guardar Cliente 🚀
                 </button>
@@ -3015,7 +2851,7 @@ useEffect(() => {
 
       {/* GENERADOR DE PRESUPUESTO — WORKSPACE RESPONSIVE */}
       {showModalPresupuesto && (
-        <div className="budget-generator mi-oficio-ui fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center overflow-hidden">
+        <div className="budget-generator mi-oficio-ui fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center overflow-hidden">
           <div className="w-full h-full sm:h-[92vh] sm:max-h-[860px] sm:max-w-[1080px] bg-[#f7f8fa] sm:rounded-2xl shadow-[0_24px_80px_rgba(15,23,42,.28)] border border-white/70 overflow-hidden flex flex-col">
             {(() => {
               const subtotal = nuevoPresupuesto.items.reduce((acc, i) => acc + (Number(i.cantidad || 0) * Number(i.precio_unitario || 0)), 0);
@@ -3217,7 +3053,7 @@ useEffect(() => {
                                   <div className="p-4 space-y-4">
                                     <div><p className="label">Cliente</p><p className="text-[11px] font-bold text-slate-900">{nuevoPresupuesto.cliente || 'Sin cliente'}</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.email || nuevoPresupuesto.telefono || 'Sin datos de contacto'}</p></div>
                                     <div className="border-t border-slate-100 pt-4"><p className="label">Conceptos</p><div className="space-y-2">{nuevoPresupuesto.items.map((item,index)=><div key={index} className="flex justify-between gap-3 text-[9px]"><span className="text-slate-600 truncate">{item.descripcion || 'Sin descripción'} × {item.cantidad}</span><span className="font-semibold text-slate-800 whitespace-nowrap">$ {(item.cantidad*item.precio_unitario).toLocaleString('es-AR')}</span></div>)}</div></div>
-                                    <div className="border-t border-slate-100 pt-4"><p className="label">Condiciones</p><div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><div><p className="text-[9px] font-semibold text-slate-800">Ejecución</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.tiempo_ejecucion}</p></div><div><p className="text-[9px] font-semibold text-slate-800">Validez</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.validez_dias} días</p></div><div><p className="text-[9px] font-semibold text-slate-800">Pago</p><p className="text-[9px] text-slate-400 mt-0.5 break-words">{nuevoPresupuesto.forma_pago}</p></div></div></div>
+                                    <div className="border-t border-slate-100 pt-4"><p className="label">Condiciones</p><div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><p className="text-[9px] font-semibold text-slate-800">Ejecución</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.tiempo_ejecucion}</p></div><div><p className="text-[9px] font-semibold text-slate-800">Validez</p><p className="text-[9px] text-slate-400 mt-0.5">{nuevoPresupuesto.validez_dias} días</p></div><div><p className="text-[9px] font-semibold text-slate-800">Pago</p><p className="text-[9px] text-slate-400 mt-0.5 break-words">{nuevoPresupuesto.forma_pago}</p></div></div></div>
                                   </div>
                                 </div>
                                 <div className="bg-slate-950 text-white rounded-xl p-4 self-start">
@@ -3240,11 +3076,11 @@ useEffect(() => {
                             </section>
                           )}
                         </div>
-                      </main>
+      </main>
                     </div>
 
                     {/* FOOTER */}
-                    <footer className="budget-footer bg-white border-t border-slate-200">
+                    <footer className="budget-footer sticky bottom-0 z-30 bg-white border-t border-slate-200 shadow-[0_-8px_24px_rgba(15,23,42,.08)]">
                       <button type="button" onClick={() => setShowModalPresupuesto(false)} className="budget-action budget-cancel border border-transparent bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition">Cancelar</button>
                       <div className="budget-actions">
                         <button type="button" onClick={guardarBorrador} className="budget-action border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition">Guardar</button>
@@ -3558,7 +3394,7 @@ useEffect(() => {
       )}
 
       {/* MOBILE NAV — 5 acciones principales; Premium vive en la cabecera */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]">
+      <nav className={`${showModalPresupuesto ? 'hidden' : 'lg:hidden'} fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-[#08111f]/98 text-white backdrop-blur-xl shadow-[0_-8px_24px_rgba(15,23,42,.16)]`}>
         <div className="mx-auto w-full max-w-[520px] px-2 pt-1.5 pb-[calc(6px+env(safe-area-inset-bottom))]">
           <div className="grid grid-cols-5 items-stretch gap-1.5">
             <button type="button" onClick={() => setActiveTab('dashboard')} className={`flex min-w-0 h-[58px] flex-col items-center justify-center gap-1 rounded-xl px-1 transition ${activeTab === 'dashboard' ? 'bg-blue-500/15 text-blue-300' : 'text-slate-400'}`}>
