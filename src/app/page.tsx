@@ -1377,6 +1377,20 @@ useEffect(() => {
     const nuevosClientes = [...clientes, cli];
     setClientes(nuevosClientes);
     sincronizarConCloudDirecto(perfilForm, nuevosClientes, presupuestos);
+
+    // Si el cliente se creó desde Nuevo presupuesto, vuelve al presupuesto
+    // y queda seleccionado automáticamente sin perder los datos cargados.
+    if (showModalPresupuesto) {
+      setNuevoPresupuesto(prev => ({
+        ...prev,
+        cliente: cli.nombre_razon_social,
+        cuit: cli.cuit_cuil || '',
+        email: cli.email || '',
+        telefono: cli.telefono || '',
+        direccion_obra: cli.direccion || '',
+      }));
+    }
+
     setShowModalCliente(false);
     mostrarNotificacion('Cliente registrado con éxito en la nube 🚀');
     setNuevoCliente({
@@ -2202,7 +2216,7 @@ useEffect(() => {
               {presupuestos.length > 0 && <span className="min-w-5 h-4.5 px-1.5 rounded-md bg-white/10 text-[10px] text-slate-300 flex items-center justify-center">{presupuestos.length}</span>}
             </button>
             <button onClick={() => setActiveTab('perfil')} className={`w-full h-9 px-2.5 rounded-lg flex items-center gap-3 text-[11px] font-semibold transition ${activeTab === 'perfil' ? 'bg-white/[0.08] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.045]'}`}>
-              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil profesional</span>
+              <span className="w-4 h-4 flex items-center justify-center"><IconoPanel name="profile" className="w-4 h-4" /></span><span>Perfil</span>
             </button>
           </nav>
         </div>
@@ -2221,10 +2235,7 @@ useEffect(() => {
                 <IconoPanel name="plus" className="w-3.5 h-3.5" />
               )}
             </span>
-            <span className="flex items-center gap-2">
-              <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'PREMIUM ACTIVO' : 'PREMIUM'}</span>
-              {!cargandoPremium && !perfilForm.es_premium && <span className="rounded-md border border-blue-400/20 bg-blue-500/10 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wider text-blue-300">PRO</span>}
-            </span>
+            <span>{cargandoPremium ? 'Conectando…' : perfilForm.es_premium ? 'Premium activo' : 'Premium'}</span>
           </button>
           <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
@@ -2240,7 +2251,7 @@ useEffect(() => {
         <header className="h-[60px] sm:h-[62px] bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-20 flex items-center justify-between px-4 sm:px-5 lg:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="lg:hidden w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[10px] font-extrabold">{inicialesUsuario}</div>
-            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil profesional' : ''}</h1></div>
+            <div className="hidden sm:block"><h1 className="text-[15px] font-extrabold text-slate-950 tracking-[-0.02em]">{activeTab === 'dashboard' ? 'Resumen general' : activeTab === 'clientes' ? 'Clientes' : activeTab === 'presupuestos' ? 'Presupuestos' : activeTab === 'configuracion' ? 'Configuración' : activeTab === 'perfil' ? 'Perfil' : ''}</h1></div>
             <div className="hidden md:flex w-[210px] xl:w-[260px] h-8 rounded-lg bg-slate-50 border border-slate-200 items-center gap-2.5 px-3.5 ml-3"><IconoPanel name="search" className="w-4 h-4 text-slate-400 shrink-0" /><input className="w-full bg-transparent outline-none text-[11px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar en MiOficio..." /></div>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 shrink-0">
@@ -2393,118 +2404,214 @@ useEffect(() => {
             </div>
           )}
           {activeTab === 'presupuestos' && (
-            <div className="space-y-4">
-              <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(15,23,42,.02)]">
-                <div className="px-4 sm:px-5 pt-4 pb-3 border-b border-slate-100">
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-                    <div>
-                      <h2 className="text-[17px] font-extrabold tracking-[-0.025em] text-slate-950">Actividad reciente</h2>
-                      <p className="mt-1.5 text-[11px] text-slate-500">Creá, gestioná y hacé seguimiento de todos tus presupuestos.</p>
+            <div className="mx-auto w-full max-w-[1180px] space-y-4">
+              <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,.04)]">
+                <div className="border-b border-slate-100 px-4 py-4 sm:px-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-blue-600">Gestión comercial</p>
+                      <h2 className="mt-1 text-[18px] font-extrabold tracking-[-0.025em] text-slate-950">Presupuestos</h2>
+                      <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                        Creá, gestioná y hacé seguimiento de todos tus presupuestos.
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={() => setShowModalCliente(true)} className="h-8 px-3 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[10px] font-bold whitespace-nowrap flex items-center gap-1.5 transition">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 4v2"/><path d="M19 17v4M17 19h4"/></svg>
-                        + Cliente
-                      </button>
-                      <button type="button" onClick={() => { setNuevoPresupuesto(prev => ({ ...prev, forma_pago: construirMediosPagoTexto() })); setPasoPresupuesto(1); setShowModalPresupuesto(true); }} className="h-8 px-3 rounded-md bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700 whitespace-nowrap flex items-center gap-1.5 transition shadow-sm">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-                        + Nuevo presupuesto
-                      </button>
+
+                    <div className="relative w-full sm:w-[270px] shrink-0">
+                      <IconoPanel name="search" className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                      <input
+                        value={busquedaPresupuesto}
+                        onChange={e => {
+                          setBusquedaPresupuesto(e.target.value);
+                          setPaginaPresupuestos(1);
+                        }}
+                        className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[10px] font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white"
+                        placeholder="Buscar cliente o presupuesto..."
+                      />
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
-                    <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-                      {['Todos','Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => (
-                        <button
-                          key={estado}
-                          type="button"
-                          onClick={() => { setFiltroEstadoPresupuesto(estado); setPaginaPresupuestos(1); }}
-                          className={`h-7 px-2.5 rounded-md text-[9px] font-bold whitespace-nowrap border transition ${filtroEstadoPresupuesto === estado ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-                        >
-                          {estado}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="h-8 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 lg:w-64 shrink-0">
-                      <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-                      <input value={busquedaPresupuesto} onChange={e => { setBusquedaPresupuesto(e.target.value); setPaginaPresupuestos(1); }} className="w-full bg-transparent outline-none text-[10px] text-slate-700 placeholder:text-slate-400" placeholder="Buscar Nº, cliente o concepto..." />
-                    </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                    <span className="mr-1 text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">Estados</span>
+                    <span className="mioficio-status-pill"><span className="text-slate-400">●</span> Emitido</span>
+                    <span className="mioficio-status-pill"><span className="text-blue-600">→</span> Enviado</span>
+                    <span className="mioficio-status-pill"><span className="text-amber-600">✓</span> Aceptado</span>
+                    <span className="mioficio-status-pill"><span className="text-emerald-600">✓</span> Pagado</span>
                   </div>
                 </div>
+
                 {(() => {
                   const listaCompleta = presupuestos.filter(p => {
                     const q = busquedaPresupuesto.toLowerCase().trim();
-                    const coincideBusqueda = !q || p.numero_presupuesto.toLowerCase().includes(q) || p.cliente.toLowerCase().includes(q) || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
-                    const coincideEstado = filtroEstadoPresupuesto === 'Todos' || p.estado === filtroEstadoPresupuesto;
-                    return coincideBusqueda && coincideEstado;
+                    return !q
+                      || p.numero_presupuesto.toLowerCase().includes(q)
+                      || p.cliente.toLowerCase().includes(q)
+                      || (p.items?.[0]?.descripcion || '').toLowerCase().includes(q);
                   });
-                  // La gestión comercial utiliza paginación profesional: 5 presupuestos por página.
-                  // El historial completo continúa disponible desde el perfil de cada cliente.
+
                   const porPagina = 5;
                   const totalPaginas = Math.max(1, Math.ceil(listaCompleta.length / porPagina));
                   const paginaActual = Math.min(paginaPresupuestos, totalPaginas);
                   const inicio = (paginaActual - 1) * porPagina;
-                  const lista = listaCompleta.slice(inicio, inicio + porPagina);
+                  const lista = [...listaCompleta]
+                    .sort((a, b) => String(b.fecha || '').localeCompare(String(a.fecha || '')))
+                    .slice(inicio, inicio + porPagina);
+
                   const paginasVisibles = totalPaginas <= 7
                     ? Array.from({ length: totalPaginas }, (_, i) => i + 1)
-                    : Array.from(new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])).filter(n => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
+                    : Array.from(
+                        new Set([1, 2, paginaActual - 1, paginaActual, paginaActual + 1, totalPaginas])
+                      )
+                        .filter(n => n >= 1 && n <= totalPaginas)
+                        .sort((a, b) => a - b);
+
+                  const estadoVisible = (estado: string | undefined) => {
+                    if (estado === 'Enviado') return 'Enviado';
+                    if (estado === 'Aceptado') return 'Aceptado';
+                    if (estado === 'Pagado') return 'Pagado';
+                    return 'Emitido';
+                  };
+
+                  const estadoClass = (estado: string) => {
+                    if (estado === 'Pagado') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    if (estado === 'Aceptado') return 'bg-amber-50 text-amber-700 border-amber-200';
+                    if (estado === 'Enviado') return 'bg-blue-50 text-blue-700 border-blue-200';
+                    return 'bg-slate-50 text-slate-600 border-slate-200';
+                  };
+
+                  const estadoIcon = (estado: string) => {
+                    if (estado === 'Pagado' || estado === 'Aceptado') return '✓';
+                    if (estado === 'Enviado') return '→';
+                    return '●';
+                  };
+
                   return lista.length === 0 ? (
-                    <div className="py-14 px-5 text-center">
-                      <div className="mx-auto w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 12h5M10 16h5"/></svg></div>
-                      <p className="mt-3 text-[11px] font-semibold text-slate-700">No hay presupuestos que coincidan.</p>
-                      <p className="mt-1.5 text-[11px] text-slate-500">Probá con otro criterio o creá un nuevo presupuesto.</p>
+                    <div className="px-5 py-16 text-center">
+                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400">
+                        <IconoPanel name="quotes" className="h-4 w-4" />
+                      </div>
+                      <p className="mt-3 text-[11px] font-bold text-slate-700">Todavía no hay presupuestos</p>
+                      <p className="mt-1 text-[9px] text-slate-400">
+                        Los presupuestos que generes aparecerán acá.
+                      </p>
                     </div>
                   ) : (
                     <>
-                    <div className="overflow-x-auto rounded-lg border border-slate-100">
-                      <table className="w-full min-w-[760px] max-w-[1120px] text-left table-fixed">
-                        <thead><tr className="bg-slate-50/70 border-b border-slate-100">
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Nº</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Cliente</th>
-                          <th className="px-3 py-2 w-[210px] text-[9px] font-bold uppercase tracking-wider text-slate-400">Concepto</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Fecha</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Importe</th>
-                          <th className="px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Estado</th>
-                          <th className="px-3 py-2 w-[112px]"></th>
-                        </tr></thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {lista.sort((a,b) => String(b.fecha||'').localeCompare(String(a.fecha||''))).map(p => (
-                            <tr key={p.presupuesto_id} className="hover:bg-slate-50/60 transition">
-                              <td className="px-3 py-2 text-[10px] font-semibold text-slate-600">{p.numero_presupuesto}</td>
-                              <td className="px-3 py-2 text-[11px] font-semibold text-slate-900">{p.cliente || 'Cliente sin nombre'}</td>
-                              <td className="px-3 py-2 text-[10px] text-slate-500 max-w-[220px] truncate">{p.items?.[0]?.descripcion || 'Presupuesto'}</td>
-                              <td className="px-3 py-2 text-[10px] text-slate-500 whitespace-nowrap">{p.fecha}</td>
-                              <td className="px-3 py-2 text-[11px] font-bold text-slate-900 whitespace-nowrap">$ {(p.total || 0).toLocaleString('es-AR')}</td>
-                              <td className="px-3 py-2"><select value={p.estado || 'Emitido'} onChange={e => cambiarEstadoPresupuesto(p.presupuesto_id, e.target.value)} aria-label={`Estado de ${p.numero_presupuesto}`} className={`h-7 max-w-[112px] rounded-md border px-2 pr-6 text-[9px] font-semibold outline-none cursor-pointer appearance-none bg-no-repeat bg-[right_5px_center] bg-[length:10px_10px] ${p.estado==='Pagado'?'bg-emerald-50 text-emerald-700 border-emerald-200':p.estado==='Aceptado'?'bg-amber-50 text-amber-700 border-amber-200':p.estado==='Rechazado'?'bg-red-50 text-red-700 border-red-200':p.estado==='Vencido'?'bg-slate-100 text-slate-600 border-slate-200':'bg-blue-50 text-blue-700 border-blue-200'}`}>{['Emitido','Enviado','En revisión','Aceptado','Rechazado','Vencido','Pagado'].map(estado => <option key={estado} value={estado}>{estado}</option>)}</select></td>
-                              <td className="px-3 py-2 text-right"><div className="flex justify-end gap-1.5"><button onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button><button onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg></button><button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar presupuesto" aria-label={`Eliminar presupuesto ${p.numero_presupuesto}`} className="w-7 h-7 rounded-md border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 inline-flex items-center justify-center"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg></button></div></td>
+                      {/* PC */}
+                      <div className="hidden overflow-x-auto md:block">
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="border-b border-slate-100 bg-slate-50/70">
+                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">N.º</th>
+                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Cliente</th>
+                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Fecha</th>
+                              <th className="px-4 py-2.5 text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Estado</th>
+                              <th className="px-4 py-2.5 text-right text-[8px] font-extrabold uppercase tracking-wider text-slate-400">Total</th>
+                              <th className="w-[104px] px-4 py-2.5"></th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {totalPaginas > 1 && (
-                      <div className="px-3 sm:px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <p className="text-[9px] text-slate-400">Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span> presupuestos</p>
-                        <div className="flex items-center justify-center sm:justify-end gap-1">
-                          <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página anterior">
-                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-                          </button>
-                          {paginasVisibles.map((numero, index) => {
-                            const anterior = paginasVisibles[index - 1];
-                            return (
-                              <Fragment key={numero}>
-                                {anterior && numero - anterior > 1 && <span className="w-5 text-center text-[10px] text-slate-400">…</span>}
-                                <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`w-7 h-7 rounded-md border text-[9px] font-bold transition ${paginaActual === numero ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{numero}</button>
-                              </Fragment>
-                            );
-                          })}
-                          <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="w-7 h-7 rounded-md border border-slate-200 text-slate-500 disabled:opacity-35 disabled:cursor-not-allowed hover:bg-slate-50 hover:text-slate-800 transition" aria-label="Página siguiente">
-                            <svg className="w-3 h-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                          </button>
-                        </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {lista.map(p => {
+                              const estado = estadoVisible(p.estado);
+                              return (
+                                <tr key={p.presupuesto_id} className="transition hover:bg-slate-50/60">
+                                  <td className="px-4 py-3 text-[9px] font-bold text-slate-500">{p.numero_presupuesto}</td>
+                                  <td className="px-4 py-3">
+                                    <p className="truncate text-[10px] font-bold text-slate-900">{p.cliente || 'Cliente sin nombre'}</p>
+                                    <p className="mt-0.5 max-w-[260px] truncate text-[8px] text-slate-400">{p.items?.[0]?.descripcion || 'Presupuesto'}</p>
+                                  </td>
+                                  <td className="px-4 py-3 text-[9px] text-slate-500">{p.fecha}</td>
+                                  <td className="px-4 py-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => cambiarEstadoPresupuesto(p.presupuesto_id, estado === 'Emitido' ? 'Enviado' : estado === 'Enviado' ? 'Aceptado' : estado === 'Aceptado' ? 'Pagado' : 'Emitido')}
+                                      className={`mioficio-status-pill ${estadoClass(estado)}`}
+                                      title="Cambiar estado"
+                                    >
+                                      <span>{estadoIcon(estado)}</span>{estado}
+                                    </button>
+                                  </td>
+                                  <td className="px-4 py-3 text-right text-[10px] font-extrabold text-slate-950">
+                                    $ {(p.total || 0).toLocaleString('es-AR')}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <div className="flex justify-end gap-1">
+                                      <button type="button" onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+                                      </button>
+                                      <button type="button" onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+                                      </button>
+                                      <button type="button" onClick={() => eliminarPresupuesto(p.presupuesto_id, p.numero_presupuesto)} title="Eliminar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+                                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16"/><path d="M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
                       </div>
-                    )}
+
+                      {/* Móvil */}
+                      <div className="space-y-2 p-3 md:hidden">
+                        {lista.map(p => {
+                          const estado = estadoVisible(p.estado);
+                          return (
+                            <div key={p.presupuesto_id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,.03)]">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="truncate text-[10px] font-extrabold text-slate-900">{p.cliente || 'Cliente sin nombre'}</p>
+                                  <p className="mt-0.5 text-[8px] text-slate-400">{p.numero_presupuesto} · {p.fecha}</p>
+                                </div>
+                                <p className="shrink-0 text-[11px] font-extrabold text-slate-950">$ {(p.total || 0).toLocaleString('es-AR')}</p>
+                              </div>
+                              <div className="mt-2.5 flex items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => cambiarEstadoPresupuesto(p.presupuesto_id, estado === 'Emitido' ? 'Enviado' : estado === 'Enviado' ? 'Aceptado' : estado === 'Aceptado' ? 'Pagado' : 'Emitido')}
+                                  className={`mioficio-status-pill ${estadoClass(estado)}`}
+                                >
+                                  <span>{estadoIcon(estado)}</span>{estado}
+                                </button>
+                                <div className="flex gap-1">
+                                  <button type="button" onClick={() => setPresupuestoEnEdicion(p)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400">
+                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+                                  </button>
+                                  <button type="button" onClick={() => generarYMostrarPdf(p)} title="Ver PDF" className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400">
+                                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 3h7v7M21 3l-9 9"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {totalPaginas > 1 && (
+                        <div className="flex flex-col gap-2.5 border-t border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-[8px] text-slate-400">
+                            Mostrando <span className="font-semibold text-slate-600">{inicio + 1}–{Math.min(inicio + porPagina, listaCompleta.length)}</span> de <span className="font-semibold text-slate-600">{listaCompleta.length}</span>
+                          </p>
+                          <div className="flex items-center justify-center gap-1 sm:justify-end">
+                            <button type="button" onClick={() => setPaginaPresupuestos(Math.max(1, paginaActual - 1))} disabled={paginaActual === 1} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30" aria-label="Página anterior">
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            {paginasVisibles.map((numero, index) => {
+                              const anterior = paginasVisibles[index - 1];
+                              return (
+                                <Fragment key={numero}>
+                                  {anterior && numero - anterior > 1 && <span className="w-4 text-center text-[9px] text-slate-400">…</span>}
+                                  <button type="button" onClick={() => setPaginaPresupuestos(numero)} className={`flex h-7 w-7 items-center justify-center rounded-lg border text-[8px] font-bold ${paginaActual === numero ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 text-slate-500'}`}>{numero}</button>
+                                </Fragment>
+                              );
+                            })}
+                            <button type="button" onClick={() => setPaginaPresupuestos(Math.min(totalPaginas, paginaActual + 1))} disabled={paginaActual === totalPaginas} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30" aria-label="Página siguiente">
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </>
                   );
                 })()}
@@ -2731,7 +2838,7 @@ useEffect(() => {
 
       {/* MODAL CLIENTE */}
       {showModalCliente && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-3 z-[70] overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-3 z-[110] overflow-y-auto">
           <div className="bg-white rounded-xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
             <div className="bg-[#0b1329] text-white px-4 py-3 flex justify-between items-center border-b border-slate-800 flex-shrink-0">
               <div>
