@@ -5,12 +5,6 @@ import { getAdminDb } from "@/lib/firebase-admin";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function safeEmailKey(email: string) {
-  return email
-    .toLowerCase()
-    .replace(/[.#$[\]/]/g, "_");
-}
-
 function validarFirmaMercadoPago(
   request: NextRequest,
   dataId: string
@@ -316,55 +310,16 @@ export async function POST(
         );
       }
 
-      const emailKey =
-        externalReference.replace(
-          /^mioficio_/,
-          ""
-        );
-
-      // ==========================================
-      // PREMIUM
-      // ==========================================
-
-      const premiumActivo =
-        subscription.status ===
-        "authorized";
-
-      const perfilRef =
-        getAdminDb().ref(
-          `usuarios_data/${safeEmailKey(
-            emailKey
-          )}/perfil/es_premium`
-        );
-
-      await perfilRef.set(
-        premiumActivo
-      );
-
-      console.log(
-        `Premium ${
-          premiumActivo
-            ? "ACTIVADO"
-            : "DESACTIVADO"
-        } para ${emailKey}`
-      );
-
+      // La suscripción heredada se conserva para conciliación.
+      // Nunca otorgar ni revocar Premium escribiendo perfil.es_premium:
+      // la autorización efectiva se consulta por UID en mercadopago_entitlements.
+      console.info("Suscripción recibida para conciliación", {
+        subscriptionId: subscription.id,
+        status: subscription.status,
+      });
       return NextResponse.json(
-        {
-          received: true,
-
-          premium:
-            premiumActivo,
-
-          subscriptionId:
-            subscription.id,
-
-          status:
-            subscription.status,
-        },
-        {
-          status: 200,
-        }
+        { received: true, subscriptionId: subscription.id, status: subscription.status },
+        { status: 200 }
       );
     }
 
